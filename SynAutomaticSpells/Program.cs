@@ -50,8 +50,27 @@ namespace SynAutomaticSpells
             State = state;
 
             // get spell infos
+            Dictionary<ISpellGetter, SpellInfo> spellInfoList = GetSpellInfoList();
+
+            foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
+            {
+                // skip invalid
+                if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
+                //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
+
+
+                foreach (var spellInfo in spellInfoList)
+                {
+                    if (!CanGetTheSpell(npcGetter, spellInfo)) continue;
+
+                }
+            }
+        }
+
+        private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
+        {
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
-            foreach (var spellGetter in state.LoadOrder.PriorityOrder.Spell().WinningOverrides())
+            foreach (var spellGetter in State!.LoadOrder.PriorityOrder.Spell().WinningOverrides())
             {
                 if (spellGetter.Type != SpellType.Spell || spellInfoList.ContainsKey(spellGetter)) continue;
 
@@ -67,7 +86,7 @@ namespace SynAutomaticSpells
                         || mEffect.BaseEffect.IsNull
                         || mEffect.BaseEffect.FormKey.IsNull) continue;
 
-                    if (!mEffect.BaseEffect.TryResolve(state.LinkCache, out var effect)) continue;
+                    if (!mEffect.BaseEffect.TryResolve(State.LinkCache, out var effect)) continue;
 
                     var effectMagicSkillActorValue = effect.MagicSkill;
 
@@ -102,47 +121,7 @@ namespace SynAutomaticSpells
                 if (curCost != -1) spellInfoList.TryAdd(spellGetter, spellInfo);
             }
 
-            foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
-            {
-                // skip invalid
-                if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
-                //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
-
-
-                foreach (var spellInfo in spellInfoList)
-                {
-                    if (!CanGetTheSpell(npcGetter, spellInfo)) continue;
-
-                }
-
-                //List<IFormLinkGetter<ISpellRecordGetter>> npcSpells = new();
-                //foreach (var npcSpellRecordGetter in npcGetter.ActorEffect)
-                //{
-                //    if (npcSpellRecordGetter.IsNull) continue;
-
-                //    npcSpells.Add(npcSpellRecordGetter);
-                //}
-
-                //if (npcSpells.Count == 0) continue;
-
-                //var skills = GetActorSkillLevels(npcGetter);
-                //if (skills == null || skills.Count == 0) continue;
-
-                //List<IFormLinkGetter<ISpellRecordGetter>> npcCanGetSpells = new();
-                //foreach (var spellRecordGetter in spellInfoList)
-                //{
-                //    if (!IsNpcCanGetTheSpell(npcGetter, spellRecordGetter)) continue;
-
-                //    npcCanGetSpells.Add(spellRecordGetter);
-                //}
-
-                //if (npcCanGetSpells.Count == 0) continue;
-
-                //var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcGetter);
-
-                //foreach (var spellRecordGetter in spellInfoList) npc.ActorEffect!.Add(spellRecordGetter);
-            }
-
+            return spellInfoList;
         }
 
         private static bool CanGetTheSpell(INpcGetter npcGetter, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
