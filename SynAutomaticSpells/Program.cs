@@ -74,54 +74,74 @@ namespace SynAutomaticSpells
             {
                 if (spellGetter.Type != SpellType.Spell || spellInfoList.ContainsKey(spellGetter)) continue;
 
-                var spellBaseCost = spellGetter.BaseCost;
+                var spellInfo = GetSpellInfo(spellGetter);
 
-                // get spell infos
-                SpellInfo spellInfo = new();
-                int curCost = -1;
-                foreach (var mEffect in spellGetter.Effects)
-                {
-                    if (mEffect == null
-                        || mEffect.Data == null
-                        || mEffect.BaseEffect.IsNull
-                        || mEffect.BaseEffect.FormKey.IsNull) continue;
-
-                    if (!mEffect.BaseEffect.TryResolve(State.LinkCache, out var effect)) continue;
-
-                    var effectMagicSkillActorValue = effect.MagicSkill;
-
-                    // add required skills and thir max required levels
-                    if (!IsMagicSkill(effectMagicSkillActorValue)) continue;
-
-                    var skill = (Skill)Enum.Parse(typeof(Skill), effectMagicSkillActorValue.ToString()); // convert ActorValue to Skill by value name string
-
-                    if (spellInfo.RequiredSkills.ContainsKey(skill))
-                    {
-                        if (spellInfo.RequiredSkills[skill] < effect.MinimumSkillLevel) spellInfo.RequiredSkills[skill] = effect.MinimumSkillLevel;
-                    }
-                    else spellInfo.RequiredSkills.Add(skill, effect.MinimumSkillLevel);
-
-                    float mag = mEffect.Data.Magnitude;
-                    if (mag < 1) mag = 1F;
-
-                    int dur = mEffect.Data.Duration;
-                    if (dur == 0) dur = 10;
-
-                    // calculate main skill and effect
-                    double cost = spellBaseCost * Math.Pow((mag * dur / 10), 1.1);
-                    int iCost = (int)Math.Floor(cost);
-                    if (iCost > curCost)
-                    {
-                        spellInfo.MainSkill = skill;
-                        curCost = iCost;
-                        spellInfo.MainEffect = effect;
-                    }
-                }
-
-                if (curCost != -1) spellInfoList.TryAdd(spellGetter, spellInfo);
+                if (spellInfo != null) spellInfoList.TryAdd(spellGetter, spellInfo);
             }
 
             return spellInfoList;
+        }
+
+        private static SpellInfo? GetSpellInfo(ISpellGetter spellGetter)
+        {
+            SpellInfo spellInfo = new();
+            var spellBaseCost = spellGetter.BaseCost;
+            int curCost = -1;
+            foreach (var mEffect in spellGetter.Effects)
+            {
+                if (mEffect == null
+                    || mEffect.Data == null
+                    || mEffect.BaseEffect.IsNull
+                    || mEffect.BaseEffect.FormKey.IsNull) continue;
+
+                if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
+
+                var effectMagicSkillActorValue = effect.MagicSkill;
+
+                // add required skills and thir max required levels
+                if (!IsMagicSkill(effectMagicSkillActorValue)) continue;
+
+                var skill = GetSkillByActorValue(effectMagicSkillActorValue);
+
+                AddUpdateSkill(spellInfo.RequiredSkills, skill, effect.MinimumSkillLevel);
+
+                // set spell info
+                float mag = mEffect.Data.Magnitude;
+                if (mag < 1) mag = 1F;
+
+                int dur = mEffect.Data.Duration;
+                if (dur == 0) dur = 10;
+
+                // calculate main skill and effect
+                int cost = CalcCost(spellBaseCost, mag, dur);
+                if (cost > curCost)
+                {
+                    spellInfo.MainSkill = skill;
+                    curCost = cost;
+                    spellInfo.MainEffect = effect;
+                }
+            }
+
+            return curCost == -1 ? null : spellInfo;
+        }
+
+        private static int CalcCost(uint spellBaseCost, float mag, int dur)
+        {
+            return (int)Math.Floor(spellBaseCost * Math.Pow((mag * dur / 10), 1.1));
+        }
+
+        private static void AddUpdateSkill(Dictionary<Skill, uint> requiredSkills, Skill skill, uint minimumSkillLevel)
+        {
+            if (requiredSkills.ContainsKey(skill))
+            {
+                if (requiredSkills[skill] < minimumSkillLevel) requiredSkills[skill] = minimumSkillLevel;
+            }
+            else requiredSkills.Add(skill, minimumSkillLevel);
+        }
+
+        private static Skill GetSkillByActorValue(ActorValue effectMagicSkillActorValue)
+        {
+            return (Skill)Enum.Parse(typeof(Skill), effectMagicSkillActorValue.ToString());
         }
 
         private static bool CanGetTheSpell(INpcGetter npcGetter, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
@@ -148,13 +168,13 @@ namespace SynAutomaticSpells
                 foreach (var prefix in new[] { "MAGIC" })
                 {
                     if (!edid.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase)) continue;
-                    
+
                     validKeywords.Add(keyword);
                     break;
                 }
             }
 
-            var effects = validKeywords.All(k=>);
+            var effects = validKeywords.All(k =>);
             if (effects != null && magicKeys.Count > 0)
             {
                 foreach (KYWD key in magicKeys)
@@ -177,7 +197,7 @@ namespace SynAutomaticSpells
             }
 
 
-                return false;
+            return false;
         }
 
         private static bool IsMagicSkill(ActorValue effectMagicSkill)
