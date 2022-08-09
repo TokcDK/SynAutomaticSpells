@@ -260,6 +260,7 @@ namespace SynAutomaticSpells
             foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
                 // skip invalid
+                if (Settings.Value.NpcModExclude.Contains(npcGetterContext.ModKey)) continue;
                 if (npcGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
                 var npcGetter = npcGetterContext.Record;
                 // some npc checks for validness
@@ -445,7 +446,9 @@ namespace SynAutomaticSpells
             foreach (var spellGetterContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides())
             {
                 // skip invalid
-                if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
+                if (!Settings.Value.SpellModInclude.Contains(spellGetterContext.ModKey)
+                    && !spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)
+                    ) continue;
                 var spellGetter = spellGetterContext.Record;
                 if (spellGetter.Type != SpellType.Spell || spellInfoList.ContainsKey(spellGetter)) continue;
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;

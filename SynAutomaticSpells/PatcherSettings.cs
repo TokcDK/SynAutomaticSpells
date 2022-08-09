@@ -30,20 +30,30 @@ namespace SynAutomaticSpells
         [SynthesisTooltip("Strings determine excluded npcs by editor id")]
         public HashSet<StringCompareSetting> NpcKeywordExclude = new();
         [SynthesisOrder]
-        [SynthesisDiskName("NpcModExclude")]
+        [SynthesisDiskName("NpcModNameExclude")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
         [SynthesisTooltip("Strings determine excluded mods for npcs")]
         public HashSet<StringCompareSetting> NpcModNameExclude = new();
+        [SynthesisOrder]
+        [SynthesisDiskName("NpcModExclude")]
+        //[SynthesisSettingName("Npc Keyword Exclude")]
+        [SynthesisTooltip("Determine excluded mods for npcs")]
+        public HashSet<ModKey> NpcModExclude = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpellExclude")]
         //[SynthesisSettingName("Spell Exclude")]
         [SynthesisTooltip("Strings determine excluded spells by editor id")]
         public HashSet<StringCompareSetting> SpellExclude = new();
         [SynthesisOrder]
-        [SynthesisDiskName("SpellModInclude")]
+        [SynthesisDiskName("SpellModNameInclude")]
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Strings determine included mods for spells")]
         public HashSet<StringCompareSetting> SpellModNameInclude = new();
+        [SynthesisOrder]
+        [SynthesisDiskName("SpellModInclude")]
+        //[SynthesisSettingName("SpellModExclude")]
+        [SynthesisTooltip("Strings determine included mods for spells")]
+        public HashSet<ModKey> SpellModInclude = new();
         [SynthesisOrder]
         [SynthesisDiskName("EffectKeywordInclude")]
         //[SynthesisSettingName("Spell Exclude")]
