@@ -22,18 +22,18 @@ namespace SynAutomaticSpells
 
         public class NPCInfo
         {
-            public readonly Dictionary<IFormLinkNullableGetter<IEquipTypeGetter>, List<IKeywordGetter>> HandEffects = new();
+            public readonly Dictionary<FormKey, List<IKeywordGetter>> HandEffects = new();
             public readonly Dictionary<Skill, uint> SkillLevels = new();
 
             internal void AddEquipslotEffect(IFormLinkNullableGetter<IEquipTypeGetter> equipSlot, IKeywordGetter keyword)
             {
-                if (!HandEffects.ContainsKey(equipSlot))
+                if (!HandEffects.ContainsKey(equipSlot.FormKey))
                 {
-                    HandEffects.Add(equipSlot, new() { keyword });
+                    HandEffects.Add(equipSlot.FormKey, new() { keyword });
                 }
                 else
                 {
-                    HandEffects[equipSlot].Add(keyword);
+                    HandEffects[equipSlot.FormKey].Add(keyword);
                 }
             }
         }
@@ -373,9 +373,9 @@ namespace SynAutomaticSpells
             }
 
             if (validKeywords.Count==0) return false;
-            if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType)) return false;
+            if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType.FormKey)) return false;
 
-            var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType];
+            var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType.FormKey];
             if (effects == null) return false;
 
             foreach (var keywordGetter in validKeywords) if (effects.Contains(keywordGetter)) return true;
