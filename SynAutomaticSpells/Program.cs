@@ -435,7 +435,7 @@ namespace SynAutomaticSpells
             {
                 if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
                 {
-                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}'
+                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}'");
                     continue;
                 }
 
