@@ -2,6 +2,7 @@ using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Noggog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace SynAutomaticSpells
 
             // get spell infos
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = GetSpellInfoList();
-            //Dictionary<ISpellGetter, NPCInfo> npcsMap = GetNPCInfoList();
+            Dictionary<INpcGetter, NPCInfo> npcsInfoList = GetNPCInfoList();
 
             foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
             {
@@ -62,10 +63,12 @@ namespace SynAutomaticSpells
                 if (npcGetter.ActorEffect.Count == 0) continue;
                 //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
 
+                var npcInfo = npcsInfoList[npcGetter];
+
                 var spellsToAdd = new List<ISpellGetter>();
                 foreach (var spellInfo in spellInfoList)
                 {
-                    if (!CanGetTheSpell(npcGetter, spellInfo)) continue;
+                    if (!CanGetTheSpell(npcInfo, spellInfo)) continue;
                     if (npcGetter.ActorEffect!.Contains(spellInfo.Key)) continue;
 
                     spellsToAdd.Add(spellInfo.Key);
@@ -78,108 +81,178 @@ namespace SynAutomaticSpells
             }
         }
 
-        //private static Dictionary<ISpellGetter, NPCInfo> GetNPCInfoList()
-        //{
-        //    var npcInfoList = new Dictionary<ISpellGetter, NPCInfo>();
-        //    foreach (var npcGetter in State!.LoadOrder.PriorityOrder.Npc().WinningOverrides())
-        //    {
-        //        // some npc checks for validness
-        //        if (npcGetter == null) continue;
+        private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
+        {
+            var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
+            foreach (var npcGetter in State!.LoadOrder.PriorityOrder.Npc().WinningOverrides())
+            {
+                // some npc checks for validness
+                if (npcGetter == null) continue;
 
-        //        NPCInfo? npcInfo = GetNPCInfo(npcGetter);
-        //        if (npcInfo == null) continue;
+                NPCInfo? npcInfo = GetNPCInfo(npcGetter);
+                if (npcInfo == null) continue;
 
-        //    }
+                npcInfoList.Add(npcGetter, npcInfo);
+            }
 
-        //    return npcInfoList;
-        //}
+            return npcInfoList;
+        }
 
-        //private static NPCInfo? GetNPCInfo(INpcGetter npcGetter)
-        //{
-        //    INpcGetter? unTemplatedSpells = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.SpellList);
-        //    INpcGetter? unTemplatedStats = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.Stats);
-        //    if ((unTemplatedSpells == null) || (unTemplatedStats == null))
-        //    {
-        //        return null;
-        //    }
+        private static NPCInfo? GetNPCInfo(INpcGetter npcGetter)
+        {
+            INpcGetter? unTemplatedNpcSpells = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.SpellList);
+            if (unTemplatedNpcSpells == null) return null;
 
-        //    var npcInfo = new NPCInfo();
+            INpcGetter? unTemplatedNpcStats = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.Stats);
+            if (unTemplatedNpcStats == null) return null;
 
-        //    // get effects per equipSlot
-        //    List<FormLink<ISpellGetter>> spells = GetSpells(unTemplatedSpells);
-        //    var npcSpellEffectsInfo = new Dictionary<ISpellGetter, IMagicEffectGetter>();
-        //    foreach (FormLink<ISpellGetter> f in spells)
-        //    {
-        //        if (!f.TryResolve(State!.LinkCache, out var spell)) continue;
-        //        if (spell.BaseCost<=0) continue;
+            var npcInfo = new NPCInfo();
 
-        //        int curCost = -1;
-        //        IMagicEffectGetter? mainEffect = null;
-        //        foreach (var mEffect in spell.Effects)
-        //        {
-        //            if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
+            // get effects per equipSlot
+            var spells = unTemplatedNpcSpells.ActorEffect;
+            var npcSpellEffectsInfo = new Dictionary<ISpellGetter, IMagicEffectGetter>();
+            foreach (var spellRecordGetterFormLink in spells!)
+            {
+                // reconvert from ispellrecordgetter to ispellrecord
+                if (!spellRecordGetterFormLink.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
+                var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
+                if (spellGetterFormlink==null) continue;
+                if (!spellGetterFormlink.TryResolve(State!.LinkCache, out var spellGetter)) continue;
 
-        //            float mag = mEffect.Data!.Magnitude;
-        //            if (mag < 1)
-        //            {
-        //                mag = 1;
-        //            }
+                int curCost = -1;
+                if (spellGetter.BaseCost <= 0) continue;
+                IMagicEffectGetter? mainEffect = null;
+                foreach (var mEffect in spellGetter.Effects)
+                {
+                    if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
 
-        //            int dur = mEffect.Data.Duration;
-        //            if (dur == 0)
-        //            {
-        //                dur = 10;
-        //            }
-        //            var cost = CalcCost(spell.BaseCost, mag, dur);
-        //            if (cost > curCost)
-        //            {
-        //                curCost = cost;
-        //                mainEffect = effect;
-        //            }
-        //        }
+                    float mag = mEffect.Data!.Magnitude;
+                    if (mag < 1)
+                    {
+                        mag = 1;
+                    }
 
-        //        if (mainEffect != null) npcSpellEffectsInfo.Add(spell, mainEffect);
-        //    }
+                    int dur = mEffect.Data.Duration;
+                    if (dur == 0)
+                    {
+                        dur = 10;
+                    }
+                    var cost = CalcCost(spellGetter.BaseCost, mag, dur);
+                    if (cost > curCost)
+                    {
+                        curCost = cost;
+                        mainEffect = effect;
+                    }
+                }
 
-        //    foreach (var entry in npcSpellEffectsInfo)
-        //    {
-        //        var equipSlot = entry.Key.EquipmentType;
-        //        foreach (var f in entry.Value!.Keywords!)
-        //        {
-        //            if (!f.TryResolve(State!.LinkCache, out var keyword)) continue;
-        //            if (string.IsNullOrWhiteSpace(keyword.EditorID)) continue;
+                if (mainEffect != null) npcSpellEffectsInfo.Add(spellGetter, mainEffect);
+            }
 
-        //            string edid = keyword.EditorID;
-        //            foreach (string prefix in new[] { "MAGIC" })
-        //            {
-        //                if (edid.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
-        //                {
-        //                    npcInfo.AddEquipslotEffect(equipSlot, keyword);
-        //                }
-        //            }
-        //        }
-        //    }
+            foreach (var entry in npcSpellEffectsInfo)
+            {
+                var equipSlot = entry.Key.EquipmentType;
+                foreach (var keywordGetterFormLink in entry.Value!.Keywords!)
+                {
+                    if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
+                    if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
 
+                    foreach (string prefix in new[] { "MAGIC" })
+                    {
+                        if (keywordGeter.EditorID.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            npcInfo.AddEquipslotEffect(equipSlot, keywordGeter);
+                        }
+                    }
+                }
+            }
 
-        //    // get skills
-        //    List<Skill> skills = new();
-        //    skills.Add(Skill.Alteration);
-        //    skills.Add(Skill.Conjuration);
-        //    skills.Add(Skill.Destruction);
-        //    skills.Add(Skill.Illusion);
-        //    skills.Add(Skill.Restoration);
-        //    foreach (Skill s in skills)
-        //    {
-        //        //npcInfo.SkillLevels.Add(s, unTemplatedStats[s]);
-        //    }
+            // add skill level values of the npc
+            List<Skill> skills = new()
+            {
+                Skill.Alteration,
+                Skill.Conjuration,
+                Skill.Destruction,
+                Skill.Illusion,
+                Skill.Restoration
+            };
+            foreach (Skill skill in skills)
+            {
+                npcInfo.SkillLevels.Add(skill, (uint)(unTemplatedNpcStats.PlayerSkills!.SkillValues[skill] + unTemplatedNpcStats.PlayerSkills.SkillOffsets[skill]));
+            }
 
-        //    return npcInfo;
-        //}
+            return npcInfo;
+        }
+        private static IEnumerable<IKeywordGetter> GetActorSpellsMagicEffectKeywords(INpcGetter npcGetter)
+        {
+            foreach (var actorEffect in npcGetter.ActorEffect!)
+            {
+                if (actorEffect.FormKey.IsNull) continue;
+                if (!actorEffect.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
+                if (spellRecordGetter.FormKey.IsNull) continue;
 
-        //private static INpcGetter? UnTemplate(INpcGetter npcGetter, NpcConfiguration.TemplateFlag spellList)
-        //{
-        //    throw new NotImplementedException();
-        //}
+                var spellGetter = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
+                if (spellGetter == null) continue;
+
+                if (!spellGetter.TryResolve(State!.LinkCache, out var spell)) continue;
+                if (spell.Type != SpellType.Spell) continue;
+
+                foreach (var effectGetter in spell.Effects)
+                {
+                    if (effectGetter == null) continue;
+                    if (effectGetter.BaseEffect.FormKey.IsNull) continue;
+                    if (!effectGetter.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
+                    if (effect.Keywords == null) continue;
+
+                    foreach (var keywordGetter in effect.Keywords)
+                    {
+                        if (!keywordGetter.TryResolve(State!.LinkCache, out var keyword)) continue;
+                        if (string.IsNullOrWhiteSpace(keyword.EditorID)) continue;
+
+                        foreach (var str in new[] { "MAGIC" })
+                        {
+                            if (keyword.EditorID.StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                yield return keyword;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static INpcGetter? UnTemplate(INpcGetter npcGetter, NpcConfiguration.TemplateFlag templateFlag)
+        {
+            INpcGetter? untemplatedNpc = npcGetter;
+            while (untemplatedNpc.Configuration.Flags.HasFlag(templateFlag))
+            {
+                if(untemplatedNpc.Template==null 
+                    || untemplatedNpc.Template.IsNull 
+                    || untemplatedNpc.Template.FormKey.IsNull
+                    || !untemplatedNpc!.Template.TryResolve(State!.LinkCache, out var templateNpcSpawnGetter)
+                    )
+                {
+                    untemplatedNpc = null;
+                    break;
+                }
+
+                var templateNpcGetterFormlink = new FormLink<INpcGetter>(templateNpcSpawnGetter.FormKey);
+                if (templateNpcGetterFormlink == null)
+                {
+                    untemplatedNpc = null;
+                    break;
+                }
+
+                if (!templateNpcGetterFormlink.TryResolve(State!.LinkCache, out var templateNpcGetter))
+                {
+                    untemplatedNpc = null;
+                    break;
+                }
+
+                untemplatedNpc = templateNpcGetter;
+            }
+
+            return untemplatedNpc;
+        }
 
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
         {
@@ -258,17 +331,17 @@ namespace SynAutomaticSpells
             return (Skill)Enum.Parse(typeof(Skill), effectMagicSkillActorValue.ToString());
         }
 
-        private static bool CanGetTheSpell(INpcGetter npcGetter, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
+        private static bool CanGetTheSpell(NPCInfo npcInfo, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
         {
-            if (npcGetter.PlayerSkills == null) return false;
+            //if (npcGetter.PlayerSkills == null) return false;
             if (spellInfo.Value.MainEffect == null) return false;
             if (spellInfo.Value.MainEffect.Keywords == null) return false;
 
             foreach (var requiredSkillInfo in spellInfo.Value.RequiredSkills)
             {
-                if (npcGetter.PlayerSkills.SkillValues.First(s => s.Key == requiredSkillInfo.Key).Value < requiredSkillInfo.Value) return false;
+                if (requiredSkillInfo.Value > npcInfo.SkillLevels[requiredSkillInfo.Key]) return false;
+                //if (npcGetter.PlayerSkills.SkillValues.First(s => s.Key == requiredSkillInfo.Key).Value < requiredSkillInfo.Value) return false;
             }
-
 
             var validKeywords = new List<IKeywordGetter>();
             foreach (var keywordFormLinkGetter in spellInfo.Value.MainEffect!.Keywords)
@@ -288,67 +361,14 @@ namespace SynAutomaticSpells
                 }
             }
 
-            //var effects = validKeywords.All(k =>);
-            //if (effects != null && magicKeys.Count > 0)
-            //{
-            //    foreach (KYWD key in magicKeys)
-            //    {
-            //        if (effects.Contains(key))
-            //        {
-            //            return true;
-            //        }
-            //    }
-            //}
-            foreach (var validKeyword in validKeywords)
-            {
-                foreach (var keyword in GetActorSpellsMagicEffectKeywords(npcGetter))
-                {
-                    if (validKeywords.Contains(keyword))
-                    {
-                        return true;
-                    }
-                }
-            }
+            if (validKeywords.Count==0) return false;
 
+            var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType];
+            if (effects == null) return false;
+
+            foreach (var keywordGetter in validKeywords) if (effects.Contains(keywordGetter)) return true;
 
             return false;
-        }
-
-        private static IEnumerable<IKeywordGetter> GetActorSpellsMagicEffectKeywords(INpcGetter npcGetter)
-        {
-            foreach (var actorEffect in npcGetter.ActorEffect!)
-            {
-                if (actorEffect.FormKey.IsNull) continue;
-                if (!actorEffect.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
-                if (spellRecordGetter.FormKey.IsNull) continue;
-
-                var spellGetter = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
-                if (spellGetter == null) continue;
-                if (!spellGetter.TryResolve(State!.LinkCache, out var spell)) continue;
-                if (spell.Type != SpellType.Spell) continue;
-
-                foreach (var effectGetter in spell.Effects)
-                {
-                    if (effectGetter == null) continue;
-                    if (effectGetter.BaseEffect.FormKey.IsNull) continue;
-                    if (!effectGetter.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
-                    if (effect.Keywords == null) continue;
-
-                    foreach (var keywordGetter in effect.Keywords)
-                    {
-                        if (!keywordGetter.TryResolve(State!.LinkCache, out var keyword)) continue;
-                        if (string.IsNullOrWhiteSpace(keyword.EditorID)) continue;
-
-                        foreach (var str in new[] { "MAGIC" })
-                        {
-                            if (keyword.EditorID.StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                yield return keyword;
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private static bool IsMagicSkill(ActorValue effectMagicSkill)
