@@ -3,6 +3,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
+using StringCompareSettings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,6 +57,8 @@ namespace SynAutomaticSpells
 
             SearchAndTryReadASISIni();
 
+            SetAsisAutoSpellsIniValuesToSettings();
+
             // get spell infos
             Console.WriteLine("Get spells info..");
             var spellInfoList = GetSpellInfoList();
@@ -91,7 +94,119 @@ namespace SynAutomaticSpells
             }
         }
 
-        public static Dictionary<string, HashSet<string>> AutomaticSpellsIniParams = new()
+        private static void SetAsisAutoSpellsIniValuesToSettings()
+        {
+            Console.WriteLine("Set Asis autospells ini values into settings..");
+
+            foreach (var v in AutomaticSpellsIniParams!["NPCInclusions"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.Contains
+                };
+
+                var list = Settings.Value.NpcInclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["NPCExclusions"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.Contains
+                };
+
+                var list = Settings.Value.NpcExclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSCONTAINS"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.Contains
+                };
+
+                var list = Settings.Value.SpellExclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSSTARTSWITH"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.StartsWith
+                };
+
+                var list = Settings.Value.SpellExclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["EffectKeywordPrefixes"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.StartsWith
+                };
+
+                var list = Settings.Value.EffectKeywordInclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["NPCKeywordExclusions"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.StartsWith
+                };
+
+                var list = Settings.Value.NpcKeywordExclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["NPCModExclusions"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.Equals
+                };
+
+                var list = Settings.Value.NpcModNameExclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+            foreach (var v in AutomaticSpellsIniParams["spellModInclusions"])
+            {
+                var stringInfo = new StringCompareSetting
+                {
+                    Name = v,
+                    IgnoreCase = true,
+                    Compare = CompareType.Equals
+                };
+
+                var list = Settings.Value.SpellModNameInclude;
+                if (!list.Contains(stringInfo)) continue;
+                list.Add(stringInfo);
+            }
+
+            AutomaticSpellsIniParams = null;
+        }
+
+        public static Dictionary<string, HashSet<string>>? AutomaticSpellsIniParams = new()
         {
             { "NPCInclusions", new HashSet<string>() },
             { "NPCExclusions", new HashSet<string>() },
@@ -114,7 +229,7 @@ namespace SynAutomaticSpells
             Dictionary<string, HashSet<string>> iniSections = new();
             iniSections.ReadIniSectionValuesFrom(iniPath);
 
-            var keys = new HashSet<string>(AutomaticSpellsIniParams.Keys);
+            var keys = new HashSet<string>(AutomaticSpellsIniParams!.Keys);
             int iniValuesCount = 0;
             int iniSectionsCount = 0;
             foreach (var key in keys)

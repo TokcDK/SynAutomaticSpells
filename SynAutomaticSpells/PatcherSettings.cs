@@ -33,7 +33,7 @@ namespace SynAutomaticSpells
         [SynthesisDiskName("NpcModExclude")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
         [SynthesisTooltip("Strings determine excluded mods for npcs")]
-        public HashSet<string> NpcModExclude = new();
+        public HashSet<StringCompareSetting> NpcModNameExclude = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpellExclude")]
         //[SynthesisSettingName("Spell Exclude")]
@@ -43,7 +43,7 @@ namespace SynAutomaticSpells
         [SynthesisDiskName("SpellModInclude")]
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Strings determine included mods for spells")]
-        public HashSet<string> SpellModInclude = new();
+        public HashSet<StringCompareSetting> SpellModNameInclude = new();
         [SynthesisOrder]
         [SynthesisDiskName("EffectKeywordInclude")]
         //[SynthesisSettingName("Spell Exclude")]
