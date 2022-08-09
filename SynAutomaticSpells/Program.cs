@@ -52,19 +52,22 @@ namespace SynAutomaticSpells
             State = state;
 
             // get spell infos
+            Console.WriteLine("Get spells info..");
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = GetSpellInfoList();
-            Dictionary<INpcGetter, NPCInfo> npcsInfoList = GetNPCInfoList();
+            Console.WriteLine("Get npc info..");
+            Dictionary<FormKey, NPCInfo> npcsInfoList = GetNPCInfoList();
 
+            Console.WriteLine("Set spells to npc..");
             foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
             {
                 // skip invalid
                 if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
                 if (npcGetter.ActorEffect == null) continue;
                 if (npcGetter.ActorEffect.Count == 0) continue;
-                if (!npcsInfoList.ContainsKey(npcGetter)) continue;
+                if (!npcsInfoList.ContainsKey(npcGetter.FormKey)) continue;
                 //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
 
-                var npcInfo = npcsInfoList[npcGetter];
+                var npcInfo = npcsInfoList[npcGetter.FormKey];
 
                 var spellsToAdd = new List<ISpellGetter>();
                 foreach (var spellInfo in spellInfoList)
@@ -72,6 +75,7 @@ namespace SynAutomaticSpells
                     if (!CanGetTheSpell(npcInfo, spellInfo)) continue;
                     if (npcGetter.ActorEffect!.Contains(spellInfo.Key)) continue;
 
+                    Console.WriteLine($"Add '{spellInfo.Key.EditorID}' to '{npcGetter.EditorID}'..");
                     spellsToAdd.Add(spellInfo.Key);
                 }
 
@@ -80,11 +84,13 @@ namespace SynAutomaticSpells
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcGetter);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
             }
+
+            Console.WriteLine("Finished..");
         }
 
-        private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
+        private static Dictionary<FormKey, NPCInfo> GetNPCInfoList()
         {
-            var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
+            var npcInfoList = new Dictionary<FormKey, NPCInfo>();
             foreach (var npcGetter in State!.LoadOrder.PriorityOrder.Npc().WinningOverrides())
             {
                 // some npc checks for validness
@@ -94,7 +100,7 @@ namespace SynAutomaticSpells
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
 
-                npcInfoList.Add(npcGetter, npcInfo);
+                npcInfoList.Add(npcGetter.FormKey, npcInfo);
             }
 
             return npcInfoList;
@@ -367,6 +373,7 @@ namespace SynAutomaticSpells
             }
 
             if (validKeywords.Count==0) return false;
+            if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType)) return false;
 
             var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType];
             if (effects == null) return false;
