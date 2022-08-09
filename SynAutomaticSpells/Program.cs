@@ -352,13 +352,7 @@ namespace SynAutomaticSpells
                     if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
                     if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
 
-                    foreach (string prefix in new[] { "MAGIC" })
-                    {
-                        if (keywordGeter.EditorID.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
-                        }
-                    }
+                    if (keywordGeter.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
                 }
             }
 
@@ -404,13 +398,7 @@ namespace SynAutomaticSpells
                         if (!keywordGetter.TryResolve(State!.LinkCache, out var keyword)) continue;
                         if (string.IsNullOrWhiteSpace(keyword.EditorID)) continue;
 
-                        foreach (var str in new[] { "MAGIC" })
-                        {
-                            if (keyword.EditorID.StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                yield return keyword;
-                            }
-                        }
+                        if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) yield return keyword;
                     }
                 }
             }
@@ -553,13 +541,7 @@ namespace SynAutomaticSpells
 
                 var edid = keyword.EditorID;
                 if (string.IsNullOrWhiteSpace(edid)) continue;
-                foreach (var prefix in new[] { "MAGIC" })
-                {
-                    if (!edid.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase)) continue;
-
-                    validKeywords.Add(keyword);
-                    break;
-                }
+                if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) validKeywords.Add(keyword);
             }
 
 
