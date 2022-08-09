@@ -374,37 +374,6 @@ namespace SynAutomaticSpells
 
             return npcInfo;
         }
-        private static IEnumerable<IKeywordGetter> GetActorSpellsMagicEffectKeywords(INpcGetter npcGetter)
-        {
-            foreach (var actorEffect in npcGetter.ActorEffect!)
-            {
-                if (actorEffect.FormKey.IsNull) continue;
-                if (!actorEffect.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
-                if (spellRecordGetter.FormKey.IsNull) continue;
-
-                var spellGetter = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
-                if (spellGetter == null) continue;
-
-                if (!spellGetter.TryResolve(State!.LinkCache, out var spell)) continue;
-                if (spell.Type != SpellType.Spell) continue;
-
-                foreach (var effectGetter in spell.Effects)
-                {
-                    if (effectGetter == null) continue;
-                    if (effectGetter.BaseEffect.FormKey.IsNull) continue;
-                    if (!effectGetter.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
-                    if (effect.Keywords == null) continue;
-
-                    foreach (var keywordGetter in effect.Keywords)
-                    {
-                        if (!keywordGetter.TryResolve(State!.LinkCache, out var keyword)) continue;
-                        if (string.IsNullOrWhiteSpace(keyword.EditorID)) continue;
-
-                        if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) yield return keyword;
-                    }
-                }
-            }
-        }
 
         private static INpcGetter? UnTemplate(INpcGetter npcGetter, NpcConfiguration.TemplateFlag templateFlag)
         {
