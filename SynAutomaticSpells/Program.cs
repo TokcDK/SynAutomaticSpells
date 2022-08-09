@@ -546,23 +546,5 @@ namespace SynAutomaticSpells
                 || effectMagicSkill == ActorValue.Illusion
                 || effectMagicSkill == ActorValue.Restoration;
         }
-
-        private static bool IsNpcCanGetTheSpell(INpcGetter npcGetter, ISpellGetter spellRecordGetter)
-        {
-            return false;
-        }
-
-        static Dictionary<Skill, int>? GetActorSkillLevels(INpcGetter npcGetter)
-        {
-            if (npcGetter.PlayerSkills == null) return null;
-
-            Dictionary<Skill, int>? skills = new();
-            foreach (var skillValue in npcGetter.PlayerSkills.SkillValues)
-            {
-                skills.Add(skillValue.Key, skillValue.Value + npcGetter.PlayerSkills.SkillOffsets[skillValue.Key]);
-            }
-
-            return skills;
-        }
     }
 }
