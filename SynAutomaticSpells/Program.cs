@@ -433,12 +433,8 @@ namespace SynAutomaticSpells
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
             foreach (var spellGetterContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides())
             {
-                if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
-                {
-                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}'");
-                    continue;
-                }
-
+                // skip invalid
+                if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
                 var spellGetter = spellGetterContext.Record;
                 if (spellGetter.Type != SpellType.Spell || spellInfoList.ContainsKey(spellGetter)) continue;
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
