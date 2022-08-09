@@ -256,20 +256,24 @@ namespace SynAutomaticSpells
 
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
+            bool useNpcModExclude = Settings.Value.NpcModExclude.Count > 0;
+            bool useNpcModExcludeByName = Settings.Value.NpcModExclude.Count > 0;
+            bool useNpcExclude = Settings.Value.NpcExclude.Count > 0;
+            bool useNpcInclude = Settings.Value.NpcInclude.Count > 0;
+            bool useNpcKeywordExclude = Settings.Value.NpcKeywordExclude.Count > 0;
             var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
             foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
                 // skip invalid
-                if (Settings.Value.NpcModExclude.Contains(npcGetterContext.ModKey)) continue;
-                if (npcGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
+                if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(npcGetterContext.ModKey)) continue;
+                if (useNpcModExcludeByName && npcGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
                 var npcGetter = npcGetterContext.Record;
-                // some npc checks for validness
                 if (npcGetter == null) continue;
                 if (npcGetter.ActorEffect == null) continue;
                 if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
-                if (npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
-                if (!npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
-                if (npcGetter.Keywords != null)
+                if (useNpcExclude && npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
+                if (useNpcInclude && !npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
+                if (useNpcKeywordExclude && npcGetter.Keywords != null)
                 {
                     bool skip = false;
                     foreach (var keywordGetterFormLink in npcGetter.Keywords)
