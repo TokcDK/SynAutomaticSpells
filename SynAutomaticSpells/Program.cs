@@ -83,12 +83,13 @@ namespace SynAutomaticSpells
                     if (!CanGetTheSpell(npcInfo.Value, spellInfo)) continue;
                     if (npcInfo.Key.ActorEffect!.Contains(spellInfo.Key)) continue;
 
-                    Console.WriteLine($"Add '{spellInfo.Key.EditorID}' to '{npcInfo.Key.EditorID}'..");
                     spellsToAdd.Add(spellInfo.Key);
                 }
 
-                if (spellsToAdd.Count == 0) continue;
+                var addedCount = spellsToAdd.Count;
+                if (addedCount == 0) continue;
 
+                Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
             }
