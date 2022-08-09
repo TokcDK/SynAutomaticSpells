@@ -105,7 +105,7 @@ namespace SynAutomaticSpells
                 {
                     Name = v,
                     IgnoreCase = true,
-                    Compare = CompareType.Contains
+                    Compare = CompareType.StartsWith
                 };
 
                 var list = Settings.Value.NpcInclude;
