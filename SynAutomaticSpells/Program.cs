@@ -25,7 +25,7 @@ namespace SynAutomaticSpells
             public readonly Dictionary<FormKey, List<IKeywordGetter>> HandEffects = new();
             public readonly Dictionary<Skill, uint> SkillLevels = new();
 
-            internal void AddEquipslotEffect(IFormLinkNullableGetter<IEquipTypeGetter> equipSlot, IKeywordGetter keyword)
+            internal void AddEquipTypeKeywords(IFormLinkNullableGetter<IEquipTypeGetter> equipSlot, IKeywordGetter keyword)
             {
                 if (!HandEffects.ContainsKey(equipSlot.FormKey))
                 {
@@ -53,44 +53,42 @@ namespace SynAutomaticSpells
 
             // get spell infos
             Console.WriteLine("Get spells info..");
-            Dictionary<ISpellGetter, SpellInfo> spellInfoList = GetSpellInfoList();
+            var spellInfoList = GetSpellInfoList();
             Console.WriteLine("Get npc info..");
-            Dictionary<FormKey, NPCInfo> npcsInfoList = GetNPCInfoList();
+            var npcsInfoList = GetNPCInfoList();
 
-            Console.WriteLine("Set spells to npc..");
-            foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
+            Console.WriteLine("Add spells to npc if any valid..");
+            foreach (var npcInfo in npcsInfoList)
             {
                 // skip invalid
-                if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
-                if (npcGetter.ActorEffect == null) continue;
-                if (npcGetter.ActorEffect.Count == 0) continue;
-                if (!npcsInfoList.ContainsKey(npcGetter.FormKey)) continue;
+                //if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
+                //if (npcGetter.ActorEffect == null) continue;
+                //if (npcGetter.ActorEffect.Count == 0) continue;
+                //if (!npcsInfoList.ContainsKey(npcGetter.FormKey)) continue;
                 //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
 
-                var npcInfo = npcsInfoList[npcGetter.FormKey];
+                //var npcInfo = npcsInfoList[npcGetter.FormKey];
 
                 var spellsToAdd = new List<ISpellGetter>();
                 foreach (var spellInfo in spellInfoList)
                 {
-                    if (!CanGetTheSpell(npcInfo, spellInfo)) continue;
-                    if (npcGetter.ActorEffect!.Contains(spellInfo.Key)) continue;
+                    if (!CanGetTheSpell(npcInfo.Value, spellInfo)) continue;
+                    if (npcInfo.Key.ActorEffect!.Contains(spellInfo.Key)) continue;
 
-                    Console.WriteLine($"Add '{spellInfo.Key.EditorID}' to '{npcGetter.EditorID}'..");
+                    Console.WriteLine($"Add '{spellInfo.Key.EditorID}' to '{npcInfo.Key.EditorID}'..");
                     spellsToAdd.Add(spellInfo.Key);
                 }
 
                 if (spellsToAdd.Count == 0) continue;
 
-                var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcGetter);
+                var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
             }
-
-            Console.WriteLine("Finished..");
         }
 
-        private static Dictionary<FormKey, NPCInfo> GetNPCInfoList()
+        private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
-            var npcInfoList = new Dictionary<FormKey, NPCInfo>();
+            var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
             foreach (var npcGetter in State!.LoadOrder.PriorityOrder.Npc().WinningOverrides())
             {
                 // some npc checks for validness
@@ -100,7 +98,7 @@ namespace SynAutomaticSpells
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
 
-                npcInfoList.Add(npcGetter.FormKey, npcInfo);
+                npcInfoList.Add(npcGetter, npcInfo);
             }
 
             return npcInfoList;
@@ -122,30 +120,25 @@ namespace SynAutomaticSpells
             foreach (var spellRecordGetterFormLink in spells!)
             {
                 // reconvert from ispellrecordgetter to ispellrecord
-                if (!spellRecordGetterFormLink.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
-                var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
+                //if (!spellRecordGetterFormLink.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
+                var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetterFormLink.FormKey);
                 if (spellGetterFormlink==null) continue;
                 if (!spellGetterFormlink.TryResolve(State!.LinkCache, out var spellGetter)) continue;
-                if (spellGetter.Keywords==null) continue;
+
+                if (spellGetter.BaseCost <= 0) continue;
 
                 int curCost = -1;
-                if (spellGetter.BaseCost <= 0) continue;
                 IMagicEffectGetter? mainEffect = null;
                 foreach (var mEffect in spellGetter.Effects)
                 {
                     if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
 
                     float mag = mEffect.Data!.Magnitude;
-                    if (mag < 1)
-                    {
-                        mag = 1;
-                    }
+                    if (mag < 1) mag = 1;
 
                     int dur = mEffect.Data.Duration;
-                    if (dur == 0)
-                    {
-                        dur = 10;
-                    }
+                    if (dur == 0) dur = 10;
+
                     var cost = CalcCost(spellGetter.BaseCost, mag, dur);
                     if (cost > curCost)
                     {
@@ -157,11 +150,14 @@ namespace SynAutomaticSpells
                 if (mainEffect != null) npcSpellEffectsInfo.Add(spellGetter, mainEffect);
             }
 
-            if (npcSpellEffectsInfo == null) return null;
+            if (npcSpellEffectsInfo.Count == 0) return null;
 
             foreach (var entry in npcSpellEffectsInfo)
             {
-                var equipSlot = entry.Key.EquipmentType;
+                if (entry.Value == null) continue;
+                if (entry.Value.Keywords == null) continue;
+
+                var equipType = entry.Key.EquipmentType;
                 foreach (var keywordGetterFormLink in entry.Value!.Keywords!)
                 {
                     if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
@@ -171,7 +167,7 @@ namespace SynAutomaticSpells
                     {
                         if (keywordGeter.EditorID.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            npcInfo.AddEquipslotEffect(equipSlot, keywordGeter);
+                            npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
                         }
                     }
                 }
@@ -372,7 +368,9 @@ namespace SynAutomaticSpells
                 }
             }
 
-            if (validKeywords.Count==0) return false;
+
+            if (validKeywords.Count == 0) return false;
+
             if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType.FormKey)) return false;
 
             var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType.FormKey];
