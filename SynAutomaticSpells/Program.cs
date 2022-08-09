@@ -5,6 +5,7 @@ using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -53,6 +54,8 @@ namespace SynAutomaticSpells
         {
             State = state;
 
+            SearchAndTryReadASISIni();
+
             // get spell infos
             Console.WriteLine("Get spells info..");
             var spellInfoList = GetSpellInfoList();
@@ -86,6 +89,14 @@ namespace SynAutomaticSpells
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
             }
+        }
+
+        private static void SearchAndTryReadASISIni()
+        {
+            var iniPath = Path.Combine(State!.DataFolderPath, "SkyProc Patchers","ASIS","AutomaticSpells.ini");
+            if (!File.Exists(iniPath)) return;
+
+
         }
 
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
