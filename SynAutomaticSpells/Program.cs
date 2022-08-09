@@ -256,11 +256,33 @@ namespace SynAutomaticSpells
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
             var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
-            foreach (var npcGetter in State!.LoadOrder.PriorityOrder.Npc().WinningOverrides())
+            foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
+                // skip invalid
+                if (npcGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
+                var npcGetter = npcGetterContext.Record;
                 // some npc checks for validness
                 if (npcGetter == null) continue;
                 if (npcGetter.ActorEffect == null) continue;
+                if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
+                if (npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
+                if (!npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
+                if (npcGetter.Keywords != null)
+                {
+                    bool skip = false;
+                    foreach (var keywordGetterFormLink in npcGetter.Keywords)
+                    {
+                        if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
+                        if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
+
+                        if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.NpcKeywordExclude)) continue;
+
+                        skip = true;
+                        break;
+                    }
+
+                    if (skip) continue;
+                }
 
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
