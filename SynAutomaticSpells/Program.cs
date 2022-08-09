@@ -108,7 +108,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.NpcInclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["NPCExclusions"])
@@ -121,7 +122,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.NpcExclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSCONTAINS"])
@@ -134,7 +136,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.SpellExclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSSTARTSWITH"])
@@ -147,7 +150,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.SpellExclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["EffectKeywordPrefixes"])
@@ -160,7 +164,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.EffectKeywordInclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["NPCKeywordExclusions"])
@@ -173,7 +178,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.NpcKeywordExclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["NPCModExclusions"])
@@ -186,7 +192,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.NpcModNameExclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
             foreach (var v in AutomaticSpellsIniParams["spellModInclusions"])
@@ -199,7 +206,8 @@ namespace SynAutomaticSpells
                 };
 
                 var list = Settings.Value.SpellModNameInclude;
-                if (!list.Contains(stringInfo)) continue;
+                if (list.Contains(stringInfo)) continue;
+
                 list.Add(stringInfo);
             }
 
@@ -427,7 +435,7 @@ namespace SynAutomaticSpells
             {
                 if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
                 {
-                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}' skip");
+                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}'
                     continue;
                 }
 
