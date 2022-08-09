@@ -1,5 +1,4 @@
 ﻿using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis.Settings;
 using StringCompareSettings;
 using System.Collections.Generic;
@@ -58,6 +57,9 @@ namespace SynAutomaticSpells
         [SynthesisDiskName("EffectKeywordInclude")]
         //[SynthesisSettingName("Spell Exclude")]
         [SynthesisTooltip("Strings determine allowed magic effect keywords by editor id for spell types")]
-        public HashSet<StringCompareSetting> EffectKeywordInclude = new();
+        public HashSet<StringCompareSetting> EffectKeywordInclude = new()
+        {
+            new StringCompareSetting(){Name="MAGIC", IgnoreCase=true, Compare= CompareType.StartsWith},
+        };
     }
 }
