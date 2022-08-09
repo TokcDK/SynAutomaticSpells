@@ -91,12 +91,43 @@ namespace SynAutomaticSpells
             }
         }
 
+        public static Dictionary<string, HashSet<string>> AutomaticSpellsIniParams = new()
+        {
+            { "NPCInclusions", new HashSet<string>() },
+            { "NPCExclusions", new HashSet<string>() },
+            { "SPELLEXCLUSIONSCONTAINS", new HashSet<string>() },
+            { "SPELLEXCLUSIONSSTARTSWITH", new HashSet<string>() },
+            { "EffectKeywordPrefixes", new HashSet<string>() },
+            { "NPCKeywordExclusions", new HashSet<string>() },
+            { "NPCModExclusions", new HashSet<string>() },
+            { "spellModInclusions", new HashSet<string>() },
+        };
+
         private static void SearchAndTryReadASISIni()
         {
-            var iniPath = Path.Combine(State!.DataFolderPath, "SkyProc Patchers","ASIS","AutomaticSpells.ini");
+            var iniPath = Path.Combine(State!.DataFolderPath, "SkyProc Patchers", "ASIS", "AutomaticSpells.ini");
             if (!File.Exists(iniPath)) return;
 
+            // read AutomaticSpells ini parameters into settings
+            Console.WriteLine("Found ASIS 'AutomaticSpells.ini'. Trying to read..");
 
+            Dictionary<string, HashSet<string>> iniSections = new();
+            iniSections.ReadIniSectionValuesFrom(iniPath);
+
+            var keys = new HashSet<string>(AutomaticSpellsIniParams.Keys);
+            int iniValuesCount = 0;
+            int iniSectionsCount = 0;
+            foreach (var key in keys)
+            {
+                if (!iniSections.ContainsKey(key)) continue;
+
+                var v = iniSections[key];
+                AutomaticSpellsIniParams[key] = v;
+                iniValuesCount += v.Count;
+                iniSectionsCount++;
+            }
+
+            Console.WriteLine($"Added {iniSectionsCount} sections and {iniValuesCount} values from 'AutomaticSpells.ini'");
         }
 
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
@@ -135,7 +166,7 @@ namespace SynAutomaticSpells
                 // reconvert from ispellrecordgetter to ispellrecord
                 //if (!spellRecordGetterFormLink.TryResolve(State!.LinkCache, out var spellRecordGetter)) continue;
                 var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetterFormLink.FormKey);
-                if (spellGetterFormlink==null) continue;
+                if (spellGetterFormlink == null) continue;
                 if (!spellGetterFormlink.TryResolve(State!.LinkCache, out var spellGetter)) continue;
 
                 if (spellGetter.BaseCost <= 0) continue;
@@ -245,8 +276,8 @@ namespace SynAutomaticSpells
             INpcGetter? untemplatedNpc = npcGetter;
             while (untemplatedNpc.Configuration.TemplateFlags.HasFlag(templateFlag))
             {
-                if(untemplatedNpc.Template==null 
-                    || untemplatedNpc.Template.IsNull 
+                if (untemplatedNpc.Template == null
+                    || untemplatedNpc.Template.IsNull
                     || untemplatedNpc.Template.FormKey.IsNull
                     || !untemplatedNpc!.Template.TryResolve(State!.LinkCache, out var templateNpcSpawnGetter)
                     )
