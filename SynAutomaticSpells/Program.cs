@@ -423,9 +423,18 @@ namespace SynAutomaticSpells
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
         {
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
-            foreach (var spellGetter in State!.LoadOrder.PriorityOrder.Spell().WinningOverrides())
+            foreach (var spellGetterContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides())
             {
+                if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
+                {
+                    Console.WriteLine($"spell from '{spellGetterContext.ModKey.FileName.String}' skip");
+                    continue;
+                }
+
+                var spellGetter = spellGetterContext.Record;
                 if (spellGetter.Type != SpellType.Spell || spellInfoList.ContainsKey(spellGetter)) continue;
+                if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
+                if (spellGetter.EditorID.HasAnyFromList(Settings.Value.SpellExclude)) continue;
 
                 var spellInfo = GetSpellInfo(spellGetter);
 

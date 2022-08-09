@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace StringCompareSettings
 {
@@ -41,17 +39,18 @@ namespace StringCompareSettings
     {
         //public static bool IsUsingList = false;
 
-        public static bool HasAnyFromList(this string? inputString, IEnumerable<StringCompareSettingContainer> list, IEnumerable<StringCompareSettingContainer> blackList)
+        public static bool HasAnyFromList(this string? inputString, IEnumerable<StringCompareSettingContainer> list, IEnumerable<StringCompareSettingContainer>? blackList = null)
         {
             //if (IsUsingList) return false;
             if (string.IsNullOrWhiteSpace(inputString)) return false;
 
-            foreach (var setting in blackList)
-            {
-                if (setting.StringSetting == null) continue;
+            if (blackList != null)
+                foreach (var setting in blackList)
+                {
+                    if (setting.StringSetting == null) continue;
 
-                if (IsFound(inputString, setting.StringSetting)) return false;
-            }
+                    if (IsFound(inputString, setting.StringSetting)) return false;
+                }
 
             foreach (var setting in list)
             {
@@ -62,38 +61,40 @@ namespace StringCompareSettings
 
             return false;
         }
-        public static bool HasAnyFromList(this string? inputString, IEnumerable<StringCompareSetting> list, IEnumerable<StringCompareSetting> blackList)
+        public static bool HasAnyFromList(this string? inputString, IEnumerable<StringCompareSetting> list, IEnumerable<StringCompareSetting>? blackList = null)
         {
             //if (IsUsingList) return false;
             if (string.IsNullOrWhiteSpace(inputString)) return false;
 
-            foreach (var setting in blackList)
-            {
-                if (setting == null) continue;
+            if (blackList != null)
+                foreach (var setting in blackList)
+                {
+                    if (setting == null) continue;
 
-                if (IsFound(inputString, setting)) return false;
-            }
+                    if (IsFound(inputString, setting)) return false;
+                }
 
             foreach (var setting in list)
             {
-                if (setting==null) continue;
+                if (setting == null) continue;
 
-                if(IsFound(inputString, setting)) return true;
+                if (IsFound(inputString, setting)) return true;
             }
 
             return false;
         }
-        public static bool HasAllFromList(this string? inputString, IEnumerable<StringCompareSetting> list, IEnumerable<StringCompareSetting> blackList)
+        public static bool HasAllFromList(this string? inputString, IEnumerable<StringCompareSetting> list, IEnumerable<StringCompareSetting>? blackList = null)
         {
             //if (IsUsingList) return false;
             if (string.IsNullOrWhiteSpace(inputString)) return false;
 
-            foreach (var setting in blackList)
-            {
-                if (setting == null) continue;
+            if (blackList != null)
+                foreach (var setting in blackList)
+                {
+                    if (setting == null) continue;
 
-                if (IsFound(inputString, setting)) return false;
-            }
+                    if (IsFound(inputString, setting)) return false;
+                }
 
             int count = list.Count();
             foreach (var setting in list)
@@ -152,7 +153,7 @@ namespace StringCompareSettings
                     {
                         if (Regex.IsMatch(inputString, stringData.Name, RegexOptions.IgnoreCase)) return true;
                     }
-                    else if(Regex.IsMatch(inputString, stringData.Name, RegexOptions.None)) return true;
+                    else if (Regex.IsMatch(inputString, stringData.Name, RegexOptions.None)) return true;
                 }
                 catch (RegexParseException) { } // catch invalid regex error
             }
