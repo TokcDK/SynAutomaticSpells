@@ -117,33 +117,33 @@ namespace StringCompareSettings
             {
                 if (stringData.IgnoreCase)
                 {
-                    if (inputString.Contains(stringData.Name, StringComparison.InvariantCultureIgnoreCase)) return true;
+                    return inputString.Contains(stringData.Name, StringComparison.InvariantCultureIgnoreCase);
                 }
-                else if (inputString.Contains(stringData.Name, StringComparison.InvariantCulture)) return true;
+                else return inputString.Contains(stringData.Name, StringComparison.InvariantCulture);
             }
             else if (stringData.Compare == CompareType.Equals)
             {
                 if (stringData.IgnoreCase)
                 {
-                    if (string.Equals(inputString, stringData.Name, StringComparison.InvariantCultureIgnoreCase)) return true;
+                    return string.Equals(inputString, stringData.Name, StringComparison.InvariantCultureIgnoreCase);
                 }
-                else if (string.Equals(inputString, stringData.Name, StringComparison.InvariantCulture)) return true;
+                else return string.Equals(inputString, stringData.Name, StringComparison.InvariantCulture);
             }
             else if (stringData.Compare == CompareType.StartsWith)
             {
                 if (stringData.IgnoreCase)
                 {
-                    if (inputString.StartsWith(stringData.Name, StringComparison.InvariantCultureIgnoreCase)) return true;
+                    return inputString.StartsWith(stringData.Name, StringComparison.InvariantCultureIgnoreCase);
                 }
-                else if (inputString.StartsWith(stringData.Name, StringComparison.InvariantCulture)) return true;
+                else return inputString.StartsWith(stringData.Name, StringComparison.InvariantCulture);
             }
             else if (stringData.Compare == CompareType.EndsWith)
             {
                 if (stringData.IgnoreCase)
                 {
-                    if (inputString.EndsWith(stringData.Name, StringComparison.InvariantCultureIgnoreCase)) return true;
+                    return inputString.EndsWith(stringData.Name, StringComparison.InvariantCultureIgnoreCase);
                 }
-                else if (inputString.EndsWith(stringData.Name, StringComparison.InvariantCulture)) return true;
+                else return inputString.EndsWith(stringData.Name, StringComparison.InvariantCulture);
             }
             else if (stringData.Compare == CompareType.Regex)
             {
@@ -151,9 +151,9 @@ namespace StringCompareSettings
                 {
                     if (stringData.IgnoreCase)
                     {
-                        if (Regex.IsMatch(inputString, stringData.Name, RegexOptions.IgnoreCase)) return true;
+                        return Regex.IsMatch(inputString, stringData.Name, RegexOptions.IgnoreCase);
                     }
-                    else if (Regex.IsMatch(inputString, stringData.Name, RegexOptions.None)) return true;
+                    else return Regex.IsMatch(inputString, stringData.Name, RegexOptions.None);
                 }
                 catch (RegexParseException) { } // catch invalid regex error
             }

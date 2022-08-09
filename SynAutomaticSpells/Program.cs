@@ -427,7 +427,7 @@ namespace SynAutomaticSpells
             {
                 if (!spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
                 {
-                    Console.WriteLine($"spell from '{spellGetterContext.ModKey.FileName.String}' skip");
+                    Console.WriteLine($"spell {spellGetterContext.Record.EditorID} from '{spellGetterContext.ModKey.FileName.String}' skip");
                     continue;
                 }
 
