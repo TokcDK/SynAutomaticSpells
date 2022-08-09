@@ -415,16 +415,15 @@ namespace SynAutomaticSpells
 
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
         {
-            bool useModIncludebyModkey = Settings.Value.SpellModInclude.Count > 0;
-            bool useModIncludeByName = Settings.Value.SpellModNameInclude.Count > 0;
+            bool useModInclude = Settings.Value.SpellModInclude.Count > 0 || Settings.Value.SpellModNameInclude.Count > 0;
             bool useSpellExclude = Settings.Value.SpellExclude.Count > 0;
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
             foreach (var spellGetterContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides())
             {
                 // skip invalid
-                if ((useModIncludebyModkey && !Settings.Value.SpellModInclude.Contains(spellGetterContext.ModKey))
-                    && (useModIncludeByName && !spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude))
-                    ) continue;
+                if(useModInclude && !Settings.Value.SpellModInclude.Contains(spellGetterContext.ModKey) 
+                    && !spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
+
                 var spellGetter = spellGetterContext.Record;
                 if (spellGetter.Type != SpellType.Spell) continue;
                 if (spellInfoList.ContainsKey(spellGetter)) continue;
