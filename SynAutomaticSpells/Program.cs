@@ -61,6 +61,7 @@ namespace SynAutomaticSpells
                 if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
                 if (npcGetter.ActorEffect == null) continue;
                 if (npcGetter.ActorEffect.Count == 0) continue;
+                if (!npcsInfoList.ContainsKey(npcGetter)) continue;
                 //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
 
                 var npcInfo = npcsInfoList[npcGetter];
@@ -88,6 +89,7 @@ namespace SynAutomaticSpells
             {
                 // some npc checks for validness
                 if (npcGetter == null) continue;
+                if (npcGetter.ActorEffect == null) continue;
 
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
@@ -118,6 +120,7 @@ namespace SynAutomaticSpells
                 var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetter.FormKey);
                 if (spellGetterFormlink==null) continue;
                 if (!spellGetterFormlink.TryResolve(State!.LinkCache, out var spellGetter)) continue;
+                if (spellGetter.Keywords==null) continue;
 
                 int curCost = -1;
                 if (spellGetter.BaseCost <= 0) continue;
@@ -147,6 +150,8 @@ namespace SynAutomaticSpells
 
                 if (mainEffect != null) npcSpellEffectsInfo.Add(spellGetter, mainEffect);
             }
+
+            if (npcSpellEffectsInfo == null) return null;
 
             foreach (var entry in npcSpellEffectsInfo)
             {
@@ -223,7 +228,7 @@ namespace SynAutomaticSpells
         private static INpcGetter? UnTemplate(INpcGetter npcGetter, NpcConfiguration.TemplateFlag templateFlag)
         {
             INpcGetter? untemplatedNpc = npcGetter;
-            while (untemplatedNpc.Configuration.Flags.HasFlag(templateFlag))
+            while (untemplatedNpc.Configuration.TemplateFlags.HasFlag(templateFlag))
             {
                 if(untemplatedNpc.Template==null 
                     || untemplatedNpc.Template.IsNull 
