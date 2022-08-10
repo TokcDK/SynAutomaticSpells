@@ -17,7 +17,7 @@ namespace SynAutomaticSpells
         [SynthesisDiskName("GetSpellsFromSpelltomes")]
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Determine if need to get spells from avalaible spelltomes instead of spells list.\nCan prevent more unvanted spells to be added.")]
-        public bool GetSpellsFromSpelltomes = false;
+        public bool GetSpellsFromSpelltomes = true;
         [SynthesisOrder]
         [SynthesisDiskName("NpcModExclude")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
