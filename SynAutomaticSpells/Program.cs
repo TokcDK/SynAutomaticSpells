@@ -109,7 +109,7 @@ namespace SynAutomaticSpells
                 if (addedCount == 0) continue;
 
                 if (DebugNPC) Console.WriteLine($"{npcDebugID} 3");
-                //Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
+                if(!DebugNPC && !DebugSpell && !DebugSpellEffect) Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
                 patchedNpcCount++;
