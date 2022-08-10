@@ -77,7 +77,7 @@ namespace SynAutomaticSpells
                 if (Settings.Value.Debug.IsDebugNpc)
                 {
                     IsDebugNPC = false;
-                    if (npcInfo.Key.EditorID.HasAnyFromList(Settings.Value.Debug.SpellEDIDListForDebug))
+                    if (npcInfo.Key.EditorID.HasAnyFromList(Settings.Value.Debug.NpcEDIDListForDebug))
                     {
                         npcDebugID = $"Method:{nameof(RunPatch)}/NPC:{nameof(npcInfo.Key.EditorID)}";
                         Console.WriteLine($"{npcDebugID} debug begin!");
@@ -301,7 +301,7 @@ namespace SynAutomaticSpells
                 if (Settings.Value.Debug.IsDebugNpc)
                 {
                     IsDebugNPC = false;
-                    if (npcGetterContext.Record.EditorID.HasAnyFromList(Settings.Value.Debug.SpellEDIDListForDebug))
+                    if (npcGetterContext.Record.EditorID.HasAnyFromList(Settings.Value.Debug.NpcEDIDListForDebug))
                     {
                         npcDebugID = $"Method:{nameof(RunPatch)}/NPC:{nameof(npcGetterContext.Record.EditorID)}";
                         Console.WriteLine($"{npcDebugID} debug begin!");
