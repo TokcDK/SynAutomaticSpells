@@ -324,10 +324,16 @@ namespace SynAutomaticSpells
 
                 if (spellGetter.BaseCost <= 0) continue;
 
-                int curCost = -1;
+                uint curCost = default;
+                bool firstMainIsSet = false; // control to set first main effect because curcost is 0
                 IMagicEffectGetter? mainEffect = null;
                 foreach (var mEffect in spellGetter.Effects)
                 {
+                    if (mEffect == null
+                        || mEffect.Data == null
+                        || mEffect.BaseEffect.IsNull
+                        || mEffect.BaseEffect.FormKey.IsNull) continue;
+
                     if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
 
                     float mag = mEffect.Data!.Magnitude;
@@ -337,14 +343,17 @@ namespace SynAutomaticSpells
                     if (dur == 0) dur = 10;
 
                     var cost = CalcCost(spellGetter.BaseCost, mag, dur);
-                    if (cost > curCost)
+                    if (!firstMainIsSet || cost > curCost)
                     {
+                        firstMainIsSet = true;
                         curCost = cost;
                         mainEffect = effect;
                     }
                 }
 
-                if (mainEffect != null) npcSpellEffectsInfo.Add(spellGetter, mainEffect);
+                if (mainEffect == null) continue;
+
+                npcSpellEffectsInfo.Add(spellGetter, mainEffect);
             }
 
             if (npcSpellEffectsInfo.Count == 0) return null;
@@ -453,7 +462,7 @@ namespace SynAutomaticSpells
                 {
                     if (bookContext.Record.Teaches is not BookSpell bookSpell) continue;
 
-                    if (!bookSpell.Spell.TryResolveContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter> (State!.LinkCache, out var spellContext)) continue;
+                    if (!bookSpell.Spell.TryResolveContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>(State!.LinkCache, out var spellContext)) continue;
 
                     yield return spellContext;
                 }
@@ -465,7 +474,8 @@ namespace SynAutomaticSpells
         {
             SpellInfo spellInfo = new();
             var spellBaseCost = spellGetter.BaseCost;
-            int curCost = -1;
+            uint curCost = default;
+            bool firstMainIsSet = false; // control to set first main effect because curcost is 0
             foreach (var mEffect in spellGetter.Effects)
             {
                 if (mEffect == null
@@ -492,21 +502,22 @@ namespace SynAutomaticSpells
                 if (dur == 0) dur = 10;
 
                 // calculate main skill and effect
-                int cost = CalcCost(spellBaseCost, mag, dur);
-                if (cost > curCost)
+                var cost = CalcCost(spellBaseCost, mag, dur);
+                if (!firstMainIsSet || cost > curCost)
                 {
+                    firstMainIsSet = true;
                     spellInfo.MainSkill = skill;
                     curCost = cost;
                     spellInfo.MainEffect = effect;
                 }
             }
 
-            return curCost == -1 ? null : spellInfo;
+            return !firstMainIsSet ? null : spellInfo;
         }
 
-        private static int CalcCost(uint spellBaseCost, float mag, int dur)
+        private static uint CalcCost(uint spellBaseCost, float mag, int dur)
         {
-            return (int)Math.Floor(spellBaseCost * Math.Pow((mag * dur / 10), 1.1));
+            return (uint)Math.Floor(spellBaseCost * Math.Pow((mag * dur / 10), 1.1));
         }
 
         private static void AddUpdateSkill(Dictionary<Skill, uint> requiredSkills, Skill skill, uint minimumSkillLevel)
