@@ -265,9 +265,11 @@ namespace SynAutomaticSpells
             foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
                 // skip invalid
-                if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(npcGetterContext.ModKey)) continue;
-                if (useNpcModExcludeByName && npcGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
                 var npcGetter = npcGetterContext.Record;
+                var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(npcGetter.FormKey).Last().ModKey;
+
+                if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
+                if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
                 if (npcGetter == null) continue;
                 if (npcGetter.ActorEffect == null) continue;
                 if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
@@ -423,10 +425,13 @@ namespace SynAutomaticSpells
                 bool debug = false;
                 // skip invalid
                 if (spellGetterContext == null) continue;
-                if(useModInclude && !Settings.Value.SpellModInclude.Contains(spellGetterContext.ModKey) 
-                    && !spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
 
                 var spellGetter = spellGetterContext.Record;
+
+                var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(spellGetter.FormKey).Last().ModKey;
+                if (useModInclude && !Settings.Value.SpellModInclude.Contains(sourceModKey)
+                    && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
+
                 if (spellGetter.Type != SpellType.Spell) continue;
                 if (spellInfoList.ContainsKey(spellGetter)) continue;
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
