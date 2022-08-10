@@ -399,7 +399,9 @@ namespace SynAutomaticSpells
                     }
                 }
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 1");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spell cast type is valid");
+                if (!IsValidSpellType(spellGetter)) continue;
+
                 uint curCost = default;
                 bool firstMainIsSet = false; // control to set first main effect because curcost is 0
                 IMagicEffectGetter? mainEffect = null;
@@ -546,28 +548,36 @@ namespace SynAutomaticSpells
 
                 var spellGetter = spellGetterContext.Record;
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 1");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spel is from included mods");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(spellGetter.FormKey).Last().ModKey;
                 if (useModInclude && !Settings.Value.SpellModInclude.Contains(sourceModKey)
                     && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 2");
-                if (spellGetter.Type != SpellType.Spell) continue;
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 3");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spell cast type is valid");
+                if (!IsValidSpellType(spellGetter)) continue;
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if already added");
                 if (spellInfoList.ContainsKey(spellGetter)) continue;
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 4");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if has empty edid");
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 5");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if the spell is in excluded list");
                 if (useSpellExclude && spellGetter.EditorID.HasAnyFromList(Settings.Value.SpellExclude)) continue;
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 6");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} try to get spell info");
                 var spellInfo = GetSpellInfo(spellGetter);
+                if (spellInfo == null) continue;
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 7");
-                if (spellInfo != null) spellInfoList.TryAdd(spellGetter, spellInfo);
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} add spell info");
+                spellInfoList.TryAdd(spellGetter, spellInfo);
             }
 
             return spellInfoList;
+        }
+
+        private static bool IsValidSpellType(ISpellGetter spellGetter)
+        {
+            return spellGetter.Type == SpellType.Spell
+                    && spellGetter.CastType != CastType.ConstantEffect
+                    && spellGetter.CastType != CastType.Scroll;
         }
 
         private static IEnumerable<Mutagen.Bethesda.Plugins.Cache.IModContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>?> EnumerateSpellGetterContexts()
