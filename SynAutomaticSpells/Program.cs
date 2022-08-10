@@ -138,7 +138,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.StartsWith
                 };
 
-                var list = Settings.Value.NpcInclude;
+                var list = Settings.Value.ASIS.NPCInclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -152,7 +152,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.Contains
                 };
 
-                var list = Settings.Value.NpcExclude;
+                var list = Settings.Value.ASIS.NPCExclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -166,7 +166,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.Contains
                 };
 
-                var list = Settings.Value.SpellExclude;
+                var list = Settings.Value.ASIS.SpellExclusons;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -180,7 +180,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.StartsWith
                 };
 
-                var list = Settings.Value.SpellExclude;
+                var list = Settings.Value.ASIS.SpellExclusons;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -194,7 +194,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.StartsWith
                 };
 
-                var list = Settings.Value.EffectKeywordInclude;
+                var list = Settings.Value.ASIS.EffectKeywordInclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -208,7 +208,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.StartsWith
                 };
 
-                var list = Settings.Value.NpcKeywordExclude;
+                var list = Settings.Value.ASIS.NPCKeywordExclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -222,7 +222,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.Equals
                 };
 
-                var list = Settings.Value.NpcModNameExclude;
+                var list = Settings.Value.ASIS.NPCModExclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -236,7 +236,7 @@ namespace SynAutomaticSpells
                     Compare = CompareType.Equals
                 };
 
-                var list = Settings.Value.SpellModNameInclude;
+                var list = Settings.Value.ASIS.SpellModNInclusions;
                 if (list.Contains(stringInfo)) continue;
 
                 list.Add(stringInfo);
@@ -288,9 +288,9 @@ namespace SynAutomaticSpells
         {
             bool useNpcModExclude = Settings.Value.NpcModExclude.Count > 0;
             bool useNpcModExcludeByName = Settings.Value.NpcModExclude.Count > 0;
-            bool useNpcExclude = Settings.Value.NpcExclude.Count > 0;
-            bool useNpcInclude = Settings.Value.NpcInclude.Count > 0;
-            bool useNpcKeywordExclude = Settings.Value.NpcKeywordExclude.Count > 0;
+            bool useNpcExclude = Settings.Value.ASIS.NPCExclusions.Count > 0;
+            bool useNpcInclude = Settings.Value.ASIS.NPCInclusions.Count > 0;
+            bool useNpcKeywordExclude = Settings.Value.ASIS.NPCKeywordExclusions.Count > 0;
             var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
             foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
@@ -317,16 +317,16 @@ namespace SynAutomaticSpells
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in excluded list");
                 if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in included list");
-                if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
+                if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.ASIS.NPCModExclusions)) continue;
 
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc has spells");
                 if (npcGetter.ActorEffect == null) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc edid is not empty");
                 if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc in ignore list");
-                if (useNpcExclude && npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
+                if (useNpcExclude && npcGetter.EditorID.HasAnyFromList(Settings.Value.ASIS.NPCExclusions)) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc in included list");
-                if (useNpcInclude && !npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
+                if (useNpcInclude && !npcGetter.EditorID.HasAnyFromList(Settings.Value.ASIS.NPCInclusions)) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc has keywords from ignore list");
                 if (useNpcKeywordExclude && npcGetter.Keywords != null)
                 {
@@ -336,7 +336,7 @@ namespace SynAutomaticSpells
                         if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
                         if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
 
-                        if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.NpcKeywordExclude)) continue;
+                        if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.ASIS.NPCKeywordExclusions)) continue;
 
                         skip = true;
                         break;
@@ -463,7 +463,7 @@ namespace SynAutomaticSpells
                     if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
                     if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
 
-                    if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) continue;
+                    if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.ASIS.EffectKeywordInclusions)) continue;
                     npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
                 }
             }
@@ -522,8 +522,8 @@ namespace SynAutomaticSpells
 
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
         {
-            bool useModInclude = Settings.Value.SpellModInclude.Count > 0 || Settings.Value.SpellModNameInclude.Count > 0;
-            bool useSpellExclude = Settings.Value.SpellExclude.Count > 0;
+            bool useModInclude = Settings.Value.SpellModInclude.Count > 0 || Settings.Value.ASIS.SpellModNInclusions.Count > 0;
+            bool useSpellExclude = Settings.Value.ASIS.SpellExclusons.Count > 0;
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
             foreach (var spellGetterContext in EnumerateSpellGetterContexts())
             {
@@ -548,7 +548,7 @@ namespace SynAutomaticSpells
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spel is from included mods");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(spellGetter.FormKey).Last().ModKey;
                 if (useModInclude && !Settings.Value.SpellModInclude.Contains(sourceModKey)
-                    && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
+                    && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.ASIS.SpellModNInclusions)) continue;
 
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spell cast type is valid");
                 if (!IsValidSpellType(spellGetter)) continue;
@@ -557,7 +557,7 @@ namespace SynAutomaticSpells
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if has empty edid");
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if the spell is in excluded list");
-                if (useSpellExclude && spellGetter.EditorID.HasAnyFromList(Settings.Value.SpellExclude)) continue;
+                if (useSpellExclude && spellGetter.EditorID.HasAnyFromList(Settings.Value.ASIS.SpellExclusons)) continue;
 
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} try to get spell info");
                 var spellInfo = GetSpellInfo(spellGetter);
@@ -699,7 +699,7 @@ namespace SynAutomaticSpells
 
                 var edid = keyword.EditorID;
                 if (string.IsNullOrWhiteSpace(edid)) continue;
-                if (!keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) continue;
+                if (!keyword.EditorID.HasAnyFromList(Settings.Value.ASIS.EffectKeywordInclusions)) continue;
                 spellValidKeywords.Add(keyword);
             }
 
