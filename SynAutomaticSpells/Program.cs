@@ -266,7 +266,7 @@ namespace SynAutomaticSpells
             {
                 // skip invalid
                 var npcGetter = npcGetterContext.Record;
-                var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(npcGetter.FormKey).Last().ModKey;
+                var sourceModKey = State!.LinkCache.ResolveAllContexts<INpc, INpcGetter>(npcGetter.FormKey).Last().ModKey;
 
                 if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
                 if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
