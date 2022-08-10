@@ -66,5 +66,34 @@ namespace SynAutomaticSpells
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Determine if need to get spells from spelltomes")]
         public bool IsSpellsFromSpelltomes = false;
+        public DebugOptions Debug = new();
+    }
+
+    public class DebugOptions
+    {
+        [SynthesisOrder]
+        [SynthesisDiskName("IsDebugNpc")]
+        [SynthesisTooltip("Enable debug messages")]
+        public bool IsDebugNpc = false;
+        [SynthesisOrder]
+        [SynthesisDiskName("IsDebugSpell")]
+        [SynthesisTooltip("Enable debug messages")]
+        public bool IsDebugSpell = false;
+        [SynthesisOrder]
+        [SynthesisDiskName("IsDebugSpellEffect")]
+        [SynthesisTooltip("Enable debug messages")]
+        public bool IsDebugSpellEffect = false;
+        [SynthesisOrder]
+        [SynthesisDiskName("NpcEDIDListForDebug")]
+        [SynthesisTooltip("List of NPC Editor ID wich for which will be displayed debug messages")]
+        public HashSet<StringCompareSetting> NpcEDIDListForDebug = new();
+        [SynthesisOrder]
+        [SynthesisDiskName("SpellEDIDListForDebug")]
+        [SynthesisTooltip("List of Spell Editor ID wich for which will be displayed debug messages")]
+        public HashSet<StringCompareSetting> SpellEDIDListForDebug = new();
+        [SynthesisOrder]
+        [SynthesisDiskName("SpellEDIDListForDebug")]
+        [SynthesisTooltip("List of Spell effect Editor ID wich for which will be displayed debug messages")]
+        public HashSet<StringCompareSetting> SpelEffectlEDIDListForDebug = new();
     }
 }

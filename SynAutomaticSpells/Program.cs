@@ -50,6 +50,7 @@ namespace SynAutomaticSpells
             public Dictionary<Skill, uint> RequiredSkills = new();
         }
 
+        static bool DebugSpell = false;
         static IPatcherState<ISkyrimMod, ISkyrimModGetter>? State;
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
@@ -69,28 +70,38 @@ namespace SynAutomaticSpells
             int patchedNpcCount = 0;
             foreach (var npcInfo in npcsInfoList)
             {
-                // skip invalid
-                //if (npcGetter == null || string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
-                //if (npcGetter.ActorEffect == null) continue;
-                //if (npcGetter.ActorEffect.Count == 0) continue;
-                //if (!npcsInfoList.ContainsKey(npcGetter.FormKey)) continue;
-                //if (npcGetter.ActorEffect == null || npcGetter.ActorEffect.Count == 0) continue;
+                bool isnpcdebug = false;
+                if (npcInfo.Key.EditorID== "Madena")
+                {
+                    Console.WriteLine("Madena!");
+                    isnpcdebug = true;
+                }
 
-                //var npcInfo = npcsInfoList[npcGetter.FormKey];
-
+                if(isnpcdebug) Console.WriteLine("Madena! 1");
                 var spellsToAdd = new List<ISpellGetter>();
                 foreach (var spellInfo in spellInfoList)
                 {
+                    DebugSpell = false;
+                    if(isnpcdebug && spellInfo.Key.EditorID== "ZZFireChannel")
+                    {
+                        Console.WriteLine("ZZFireChannel!");
+                        DebugSpell = true;
+                    }
+                    if(DebugSpell) Console.WriteLine("ZZFireChannel 1");
                     if (!CanGetTheSpell(npcInfo.Value, spellInfo)) continue;
+                    if (DebugSpell) Console.WriteLine("ZZFireChannel 2");
                     if (npcInfo.Key.ActorEffect!.Contains(spellInfo.Key)) continue;
+                    if (DebugSpell) Console.WriteLine("ZZFireChannel 3");
 
                     spellsToAdd.Add(spellInfo.Key);
                 }
 
+                if (isnpcdebug) Console.WriteLine("Madena! 2");
                 var addedCount = spellsToAdd.Count;
                 if (addedCount == 0) continue;
 
-                Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
+                if (isnpcdebug) Console.WriteLine("Madena! 3");
+                //Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
                 patchedNpcCount++;
@@ -257,7 +268,8 @@ namespace SynAutomaticSpells
 
             Console.WriteLine($"Added {iniSectionsCount} sections and {iniValuesCount} values from 'AutomaticSpells.ini'");
         }
-
+        
+        static bool isnpcdebug = false;
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
             bool useNpcModExclude = Settings.Value.NpcModExclude.Count > 0;
@@ -268,17 +280,35 @@ namespace SynAutomaticSpells
             var npcInfoList = new Dictionary<INpcGetter, NPCInfo>();
             foreach (var npcGetterContext in State!.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
+                if (npcGetterContext == null) continue;
+                isnpcdebug = false;
+                if (npcGetterContext.Record.EditorID == "Madena")
+                {
+                    Console.WriteLine("Madena!");
+                    isnpcdebug = true;
+                }
+
+                if (isnpcdebug) Console.WriteLine("Madena! 21");
                 // skip invalid
                 var npcGetter = npcGetterContext.Record;
+                if (npcGetter == null) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 22");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<INpc, INpcGetter>(npcGetter.FormKey).Last().ModKey;
 
+                if (isnpcdebug) Console.WriteLine("Madena! 23");
                 if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 24");
                 if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
-                if (npcGetter == null) continue;
+
+                if (isnpcdebug) Console.WriteLine("Madena! 25");
                 if (npcGetter.ActorEffect == null) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 26");
                 if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 27");
                 if (useNpcExclude && npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 28");
                 if (useNpcInclude && !npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 29");
                 if (useNpcKeywordExclude && npcGetter.Keywords != null)
                 {
                     bool skip = false;
@@ -293,11 +323,14 @@ namespace SynAutomaticSpells
                         break;
                     }
 
+                    if (isnpcdebug) Console.WriteLine("Madena! 30");
                     if (skip) continue;
                 }
 
+                if (isnpcdebug) Console.WriteLine("Madena! 31");
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
+                if (isnpcdebug) Console.WriteLine("Madena! 32");
 
                 npcInfoList.Add(npcGetter, npcInfo);
             }
@@ -307,14 +340,17 @@ namespace SynAutomaticSpells
 
         private static NPCInfo? GetNPCInfo(INpcGetter npcGetter)
         {
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 1");
             INpcGetter? unTemplatedNpcSpells = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.SpellList);
             if (unTemplatedNpcSpells == null) return null;
 
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 2");
             INpcGetter? unTemplatedNpcStats = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.Stats);
             if (unTemplatedNpcStats == null) return null;
 
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 3");
             var npcInfo = new NPCInfo();
-
+            // FireDamageConcAimed
             // get effects per equipSlot
             var spells = unTemplatedNpcSpells.ActorEffect;
             var npcSpellEffectsInfo = new Dictionary<ISpellGetter, IMagicEffectGetter>();
@@ -325,8 +361,6 @@ namespace SynAutomaticSpells
                 var spellGetterFormlink = new FormLink<ISpellGetter>(spellRecordGetterFormLink.FormKey);
                 if (spellGetterFormlink == null) continue;
                 if (!spellGetterFormlink.TryResolve(State!.LinkCache, out var spellGetter)) continue;
-
-                if (spellGetter.BaseCost <= 0) continue;
 
                 uint curCost = default;
                 bool firstMainIsSet = false; // control to set first main effect because curcost is 0
@@ -339,6 +373,13 @@ namespace SynAutomaticSpells
                         || mEffect.BaseEffect.FormKey.IsNull) continue;
 
                     if (!mEffect.BaseEffect.TryResolve(State!.LinkCache, out var effect)) continue;
+                    DebugSpell = false;
+                    if (isnpcdebug && effect.EditorID== "FireDamageConcAimed")
+                    {
+                        Console.WriteLine($"{effect.EditorID}");
+                        DebugSpell = true;
+                    }
+                    if (DebugSpell) Console.WriteLine($"{effect.EditorID} 1");
 
                     float mag = mEffect.Data!.Magnitude;
                     if (mag < 1) mag = 1;
@@ -346,22 +387,29 @@ namespace SynAutomaticSpells
                     int dur = mEffect.Data.Duration;
                     if (dur == 0) dur = 10;
 
-                    var cost = CalcCost(spellGetter.BaseCost, mag, dur);
+                    if (DebugSpell) Console.WriteLine($"{effect.EditorID} 2");
+                    var cost = CalcCost(effect.BaseCost, mag, dur);
+                    if (DebugSpell) Console.WriteLine($"{effect.EditorID} : ,{nameof(effect.BaseCost)}:{spellGetter.BaseCost},{nameof(mag)}:{mag},{nameof(dur)}:{dur},{nameof(cost)}:{cost},{nameof(curCost)}:{curCost},{nameof(firstMainIsSet)}:{firstMainIsSet}");
                     if (!firstMainIsSet || cost > curCost)
                     {
+                        if (DebugSpell) Console.WriteLine($"{effect.EditorID} 3");
                         firstMainIsSet = true;
                         curCost = cost;
                         mainEffect = effect;
                     }
                 }
 
+                if (isnpcdebug) Console.WriteLine("GetNPCInfo 4");
                 if (mainEffect == null) continue;
 
+                if (isnpcdebug) Console.WriteLine("GetNPCInfo 5");
                 npcSpellEffectsInfo.Add(spellGetter, mainEffect);
             }
 
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 4");
             if (npcSpellEffectsInfo.Count == 0) return null;
 
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 5");
             foreach (var entry in npcSpellEffectsInfo)
             {
                 if (entry.Value == null) continue;
@@ -391,6 +439,7 @@ namespace SynAutomaticSpells
                 npcInfo.SkillLevels.Add(skill, (uint)(unTemplatedNpcStats.PlayerSkills!.SkillValues[skill] + unTemplatedNpcStats.PlayerSkills.SkillOffsets[skill]));
             }
 
+            if (isnpcdebug) Console.WriteLine("GetNPCInfo 6");
             return npcInfo;
         }
 
@@ -435,23 +484,41 @@ namespace SynAutomaticSpells
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
             foreach (var spellGetterContext in EnumerateSpellGetterContexts())
             {
-                bool debug = false;
                 // skip invalid
                 if (spellGetterContext == null) continue;
 
+                string npcDebugID = "";
+                if (Settings.Value.Debug.IsDebugSpell)
+                {
+                    DebugSpell = false;
+                    if (spellGetterContext.Record.EditorID.HasAnyFromList(Settings.Value.Debug.SpellEDIDListForDebug))
+                    {
+                        npcDebugID = $"{nameof(GetSpellInfoList)}/{ nameof(spellGetterContext.Record.EditorID)}";
+                        Console.WriteLine($"{npcDebugID} debug begin!");
+                        DebugSpell = true;
+                    }
+                }                
+
                 var spellGetter = spellGetterContext.Record;
 
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 1");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(spellGetter.FormKey).Last().ModKey;
                 if (useModInclude && !Settings.Value.SpellModInclude.Contains(sourceModKey)
                     && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
 
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 2");
                 if (spellGetter.Type != SpellType.Spell) continue;
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 3");
                 if (spellInfoList.ContainsKey(spellGetter)) continue;
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 4");
                 if (string.IsNullOrWhiteSpace(spellGetter.EditorID)) continue;
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 5");
                 if (useSpellExclude && spellGetter.EditorID.HasAnyFromList(Settings.Value.SpellExclude)) continue;
 
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 6");
                 var spellInfo = GetSpellInfo(spellGetter);
 
+                if (DebugSpell) Console.WriteLine($"{nameof(GetSpellInfoList)}/{nameof(spellGetterContext.Record.EditorID)} 7");
                 if (spellInfo != null) spellInfoList.TryAdd(spellGetter, spellInfo);
             }
 
@@ -477,7 +544,6 @@ namespace SynAutomaticSpells
         private static SpellInfo? GetSpellInfo(ISpellGetter spellGetter)
         {
             SpellInfo spellInfo = new();
-            var spellBaseCost = spellGetter.BaseCost;
             uint curCost = default;
             bool firstMainIsSet = false; // control to set first main effect because curcost is 0
             foreach (var mEffect in spellGetter.Effects)
@@ -506,7 +572,7 @@ namespace SynAutomaticSpells
                 if (dur == 0) dur = 10;
 
                 // calculate main skill and effect
-                var cost = CalcCost(spellBaseCost, mag, dur);
+                var cost = CalcCost(effect.BaseCost, mag, dur);
                 if (!firstMainIsSet || cost > curCost)
                 {
                     firstMainIsSet = true;
@@ -519,9 +585,9 @@ namespace SynAutomaticSpells
             return !firstMainIsSet ? null : spellInfo;
         }
 
-        private static uint CalcCost(uint spellBaseCost, float mag, int dur)
+        private static uint CalcCost(float effectBaseCost, float mag, int dur)
         {
-            return (uint)Math.Floor(spellBaseCost * Math.Pow((mag * dur / 10), 1.1));
+            return (uint)Math.Floor(effectBaseCost * Math.Pow((mag * dur / 10), 1.1));
         }
 
         private static void AddUpdateSkill(Dictionary<Skill, uint> requiredSkills, Skill skill, uint minimumSkillLevel)
@@ -540,17 +606,23 @@ namespace SynAutomaticSpells
 
         private static bool CanGetTheSpell(NPCInfo npcInfo, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
         {
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 1");
             //if (npcGetter.PlayerSkills == null) return false;
             if (spellInfo.Value.MainEffect == null) return false;
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 2");
             if (spellInfo.Value.MainEffect.Keywords == null) return false;
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 3");
 
             foreach (var requiredSkillInfo in spellInfo.Value.RequiredSkills)
             {
+                if (DebugSpell) Console.WriteLine("CanGetTheSpell 4");
                 if (requiredSkillInfo.Value > npcInfo.SkillLevels[requiredSkillInfo.Key]) return false;
+                if (DebugSpell) Console.WriteLine("CanGetTheSpell 4.1");
                 //if (npcGetter.PlayerSkills.SkillValues.First(s => s.Key == requiredSkillInfo.Key).Value < requiredSkillInfo.Value) return false;
             }
 
-            var validKeywords = new List<IKeywordGetter>();
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 5");
+            var spellValidKeywords = new List<IKeywordGetter>();
             foreach (var keywordFormLinkGetter in spellInfo.Value.MainEffect!.Keywords)
             {
                 if (keywordFormLinkGetter.IsNull) continue;
@@ -559,19 +631,25 @@ namespace SynAutomaticSpells
 
                 var edid = keyword.EditorID;
                 if (string.IsNullOrWhiteSpace(edid)) continue;
-                if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) validKeywords.Add(keyword);
+                if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) spellValidKeywords.Add(keyword);
             }
 
 
-            if (validKeywords.Count == 0) return false;
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 6");
+            if (spellValidKeywords.Count == 0) return false;
 
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 7");
             if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType.FormKey)) return false;
 
-            var effects = npcInfo.HandEffects[spellInfo.Key.EquipmentType.FormKey];
-            if (effects == null) return false;
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 8");
+            var npcSpellsEffectsValidKeywords = npcInfo.HandEffects[spellInfo.Key.EquipmentType.FormKey];
+            if (npcSpellsEffectsValidKeywords == null) return false;
 
-            foreach (var keywordGetter in validKeywords) if (effects.Contains(keywordGetter)) return true;
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 9");
+            foreach (var keywordGetter in spellValidKeywords) if (npcSpellsEffectsValidKeywords.Contains(keywordGetter)) return true;
 
+            if (DebugSpell) Console.WriteLine("CanGetTheSpell 10");
+            if (DebugSpell) Console.WriteLine($"{nameof(spellValidKeywords)}:\n{string.Join("\n", spellValidKeywords.Select(k=>k.EditorID))}\n\n{nameof(npcSpellsEffectsValidKeywords)}:\n{string.Join("\n", npcSpellsEffectsValidKeywords.Select(k=>k.EditorID))}");
             return false;
         }
 
