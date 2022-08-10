@@ -61,5 +61,10 @@ namespace SynAutomaticSpells
         {
             new StringCompareSetting(){Name="MAGIC", IgnoreCase=true, Compare= CompareType.StartsWith},
         };
+        [SynthesisOrder]
+        [SynthesisDiskName("IsSpellsFromSpelltomes")]
+        //[SynthesisSettingName("SpellModExclude")]
+        [SynthesisTooltip("Determine if need to get spells from spelltomes")]
+        public bool IsSpellsFromSpelltomes = false;
     }
 }

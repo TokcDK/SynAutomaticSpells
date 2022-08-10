@@ -418,9 +418,11 @@ namespace SynAutomaticSpells
             bool useModInclude = Settings.Value.SpellModInclude.Count > 0 || Settings.Value.SpellModNameInclude.Count > 0;
             bool useSpellExclude = Settings.Value.SpellExclude.Count > 0;
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
-            foreach (var spellGetterContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides())
+            foreach (var spellGetterContext in EnumerateSpellGetterContexts())
             {
+                bool debug = false;
                 // skip invalid
+                if (spellGetterContext == null) continue;
                 if(useModInclude && !Settings.Value.SpellModInclude.Contains(spellGetterContext.ModKey) 
                     && !spellGetterContext.ModKey.FileName.String.HasAnyFromList(Settings.Value.SpellModNameInclude)) continue;
 
@@ -436,6 +438,22 @@ namespace SynAutomaticSpells
             }
 
             return spellInfoList;
+        }
+
+        private static IEnumerable<Mutagen.Bethesda.Plugins.Cache.IModContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>?> EnumerateSpellGetterContexts()
+        {
+            if (Settings.Value.IsSpellsFromSpelltomes)
+            {
+                foreach (var bookContext in State!.LoadOrder.PriorityOrder.Book().WinningContextOverrides())
+                {
+                    if (bookContext.Record.Teaches is not BookSpell bookSpell) continue;
+
+                    if (!bookSpell.Spell.TryResolveContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter> (State!.LinkCache, out var spellContext)) continue;
+
+                    yield return spellContext;
+                }
+            }
+            else foreach (var spellContext in State!.LoadOrder.PriorityOrder.Spell().WinningContextOverrides()) yield return spellContext;
         }
 
         private static SpellInfo? GetSpellInfo(ISpellGetter spellGetter)
