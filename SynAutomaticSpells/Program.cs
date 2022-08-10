@@ -116,7 +116,7 @@ namespace SynAutomaticSpells
                 if (addedCount == 0) continue;
 
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 3");
-                if(!IsDebugNPC && !IsDebugSpell && !IsDebugSpellEffect) Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
+                if(!Settings.Value.Debug.IsDebugNpc && !Settings.Value.Debug.IsDebugSpell && !Settings.Value.Debug.IsDebugSpellEffect) Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
                 patchedNpcCount++;
@@ -284,7 +284,6 @@ namespace SynAutomaticSpells
             Console.WriteLine($"Added {iniSectionsCount} sections and {iniValuesCount} values from 'AutomaticSpells.ini'");
         }
         
-        static bool isnpcdebug = false;
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
             bool useNpcModExclude = Settings.Value.NpcModExclude.Count > 0;

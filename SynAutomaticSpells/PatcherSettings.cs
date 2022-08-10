@@ -92,7 +92,7 @@ namespace SynAutomaticSpells
         [SynthesisTooltip("List of Spell Editor ID wich for which will be displayed debug messages")]
         public HashSet<StringCompareSetting> SpellEDIDListForDebug = new();
         [SynthesisOrder]
-        [SynthesisDiskName("SpellEDIDListForDebug")]
+        [SynthesisDiskName("SpelEffectlEDIDListForDebug")]
         [SynthesisTooltip("List of Spell effect Editor ID wich for which will be displayed debug messages")]
         public HashSet<StringCompareSetting> SpelEffectlEDIDListForDebug = new();
     }
