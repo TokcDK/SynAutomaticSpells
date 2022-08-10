@@ -579,7 +579,7 @@ namespace SynAutomaticSpells
 
         private static IEnumerable<Mutagen.Bethesda.Plugins.Cache.IModContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>?> EnumerateSpellGetterContexts()
         {
-            if (Settings.Value.IsSpellsFromSpelltomes)
+            if (Settings.Value.GetSpellsFromSpelltomes)
             {
                 foreach (var bookContext in State!.LoadOrder.PriorityOrder.Book().WinningContextOverrides())
                 {

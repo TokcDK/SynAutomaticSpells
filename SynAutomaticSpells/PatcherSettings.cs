@@ -14,9 +14,10 @@ namespace SynAutomaticSpells
     public class PatcherSettings
     {
         [SynthesisOrder]
-        [SynthesisTooltip("ASIS like options, can be read from ASIS AutomaticSpell.ini if exist or entered manually here")]
-        public ASISOptions ASIS = new();
-
+        [SynthesisDiskName("GetSpellsFromSpelltomes")]
+        //[SynthesisSettingName("SpellModExclude")]
+        [SynthesisTooltip("Determine if need to get spells from avalaible spelltomes instead of spells list.\nCan prevent more unvanted spells to be added.")]
+        public bool GetSpellsFromSpelltomes = false;
         [SynthesisOrder]
         [SynthesisDiskName("NpcModExclude")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
@@ -25,13 +26,12 @@ namespace SynAutomaticSpells
         [SynthesisOrder]
         [SynthesisDiskName("SpellModInclude")]
         //[SynthesisSettingName("SpellModExclude")]
-        [SynthesisTooltip("Strings determine included mods for spells")]
+        [SynthesisTooltip("Determine included mods for spells")]
         public HashSet<ModKey> SpellModInclude = new();
+
         [SynthesisOrder]
-        [SynthesisDiskName("IsSpellsFromSpelltomes")]
-        //[SynthesisSettingName("SpellModExclude")]
-        [SynthesisTooltip("Determine if need to get spells from spelltomes")]
-        public bool IsSpellsFromSpelltomes = false;
+        [SynthesisTooltip("ASIS like options, can be read from ASIS AutomaticSpell.ini if exist or entered manually here")]
+        public ASISOptions ASIS = new();
 
         [SynthesisOrder]
         [SynthesisTooltip("Debug options")]
