@@ -65,7 +65,7 @@ namespace SynAutomaticSpells
             Console.WriteLine("Get npc info..");
             var npcsInfoList = GetNPCInfoList();
 
-            Console.WriteLine("Distribute spells to npcs..\n\n-----------");
+            Console.WriteLine("Distribute spells to npcs..\n-----------");
             int patchedNpcCount = 0;
             foreach (var npcInfo in npcsInfoList)
             {
