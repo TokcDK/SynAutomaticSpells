@@ -5,12 +5,6 @@ using System.Collections.Generic;
 
 namespace SynAutomaticSpells
 {
-    public enum SearchMethod
-    {
-        OR,
-        AND
-    }
-
     public class PatcherSettings
     {
         [SynthesisOrder]
