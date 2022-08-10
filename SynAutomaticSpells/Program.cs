@@ -79,13 +79,13 @@ namespace SynAutomaticSpells
                     IsDebugNPC = false;
                     if (npcInfo.Key.EditorID.HasAnyFromList(Settings.Value.Debug.NpcEDIDListForDebug))
                     {
-                        npcDebugID = $"Method:{nameof(RunPatch)}/NPC:{nameof(npcInfo.Key.EditorID)}";
+                        npcDebugID = $"Method:{nameof(RunPatch)}/NPC:{npcInfo.Key.EditorID}";
                         Console.WriteLine($"{npcDebugID} debug begin!");
                         IsDebugNPC = true;
                     }
                 }
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 1");
 
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} get spell effects info");
                 var spellsToAdd = new List<ISpellGetter>();
                 foreach (var spellInfo in spellInfoList)
                 {
@@ -111,11 +111,11 @@ namespace SynAutomaticSpells
                     spellsToAdd.Add(spellInfo.Key);
                 }
 
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 2");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if any spells must added");
                 var addedCount = spellsToAdd.Count;
                 if (addedCount == 0) continue;
 
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 3");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} add spells for npc");
                 if(!Settings.Value.Debug.IsDebugNpc && !Settings.Value.Debug.IsDebugSpell && !Settings.Value.Debug.IsDebugSpellEffect) Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
@@ -308,28 +308,26 @@ namespace SynAutomaticSpells
                         IsDebugNPC = true;
                     }
                 }
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 1");
 
                 // skip invalid
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check npc getter");
                 var npcGetter = npcGetterContext.Record;
                 if (npcGetter == null) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 2");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<INpc, INpcGetter>(npcGetter.FormKey).Last().ModKey;
-
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 3");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in excluded list");
                 if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 4");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in included list");
                 if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.NpcModNameExclude)) continue;
 
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 5");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc has spells");
                 if (npcGetter.ActorEffect == null) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 6");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc edid is not empty");
                 if (string.IsNullOrWhiteSpace(npcGetter.EditorID)) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 7");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc in ignore list");
                 if (useNpcExclude && npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcExclude)) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 8");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc in included list");
                 if (useNpcInclude && !npcGetter.EditorID.HasAnyFromList(Settings.Value.NpcInclude)) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 9");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc has keywords from ignore list");
                 if (useNpcKeywordExclude && npcGetter.Keywords != null)
                 {
                     bool skip = false;
@@ -344,15 +342,15 @@ namespace SynAutomaticSpells
                         break;
                     }
 
-                    if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 10");
+                    if (IsDebugNPC) Console.WriteLine($"{npcDebugID} skip npc if has excluded keyword:{skip}");
                     if (skip) continue;
                 }
 
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 11");
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} get npc info");
                 NPCInfo? npcInfo = GetNPCInfo(npcGetter);
                 if (npcInfo == null) continue;
-                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} 12");
 
+                if (IsDebugNPC) Console.WriteLine($"{npcDebugID} add npc info");
                 npcInfoList.Add(npcGetter, npcInfo);
             }
 
@@ -361,20 +359,20 @@ namespace SynAutomaticSpells
 
         private static NPCInfo? GetNPCInfo(INpcGetter npcGetter)
         {
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 1");
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} get npc with untemplated spells list");
             INpcGetter? unTemplatedNpcSpells = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.SpellList);
             if (unTemplatedNpcSpells == null) return null;
 
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 2");
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} get npc with untemplated stats");
             INpcGetter? unTemplatedNpcStats = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.Stats);
             if (unTemplatedNpcStats == null) return null;
 
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 3");
             var npcInfo = new NPCInfo();
             // FireDamageConcAimed
             // get effects per equipSlot
             var spells = unTemplatedNpcSpells.ActorEffect;
             var npcSpellEffectsInfo = new Dictionary<ISpellGetter, IMagicEffectGetter>();
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} get npc spells info");
             foreach (var spellRecordGetterFormLink in spells!)
             {
                 if (spellRecordGetterFormLink == null) continue;
@@ -425,7 +423,6 @@ namespace SynAutomaticSpells
                             IsDebugSpellEffect = true;
                         }
                     }
-                    if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} 1");
 
                     float mag = mEffect.Data!.Magnitude;
                     if (mag < 1) mag = 1;
@@ -437,24 +434,24 @@ namespace SynAutomaticSpells
                     if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID}/{effect.EditorID}:{nameof(effect.BaseCost)}:{spellGetter.BaseCost},{nameof(mag)}:{mag},{nameof(dur)}:{dur},{nameof(cost)}:{cost},{nameof(curCost)}:{curCost},{nameof(firstMainIsSet)}:{firstMainIsSet}");
                     if (!firstMainIsSet || cost > curCost)
                     {
-                        if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} 3");
+                        if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} effect is set as main");
                         firstMainIsSet = true;
                         curCost = cost;
                         mainEffect = effect;
                     }
                 }
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 2");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if main effect is set:{mainEffect}");
                 if (mainEffect == null) continue;
 
-                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} 3");
+                if (IsDebugSpell) Console.WriteLine($"{spellDebugID} add npc spell effects info");
                 npcSpellEffectsInfo.Add(spellGetter, mainEffect);
             }
 
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 4");
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} check if any npc spell effects info added");
             if (npcSpellEffectsInfo.Count == 0) return null;
 
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 5");
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} check and add equip type and keywords list for it");
             foreach (var entry in npcSpellEffectsInfo)
             {
                 if (entry.Value == null) continue;
@@ -466,7 +463,8 @@ namespace SynAutomaticSpells
                     if (!keywordGetterFormLink.TryResolve(State!.LinkCache, out var keywordGeter)) continue;
                     if (string.IsNullOrWhiteSpace(keywordGeter.EditorID)) continue;
 
-                    if (keywordGeter.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
+                    if (!keywordGeter.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) continue;
+                    npcInfo.AddEquipTypeKeywords(equipType, keywordGeter);
                 }
             }
 
@@ -623,9 +621,9 @@ namespace SynAutomaticSpells
                         IsDebugSpellEffect = true;
                     }
                 }
-                if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} 1");
 
                 // add required skills and thir max required levels
+                if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} check if spell effect is one of main magic schools");
                 if (!IsMagicSkill(effectMagicSkillActorValue)) continue;
 
                 var skill = GetSkillByActorValue(effectMagicSkillActorValue);
@@ -644,7 +642,7 @@ namespace SynAutomaticSpells
                 if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID}/{effect.EditorID}:{nameof(effect.BaseCost)}:{spellGetter.BaseCost},{nameof(mag)}:{mag},{nameof(dur)}:{dur},{nameof(cost)}:{cost},{nameof(curCost)}:{curCost},{nameof(firstMainIsSet)}:{firstMainIsSet}");
                 if (!firstMainIsSet || cost > curCost)
                 {
-                    if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} 2");
+                    if (IsDebugSpellEffect) Console.WriteLine($"{spellEffectDebugID} effect and skill set as main");
                     firstMainIsSet = true;
                     spellInfo.MainSkill = skill;
                     curCost = cost;
@@ -676,22 +674,22 @@ namespace SynAutomaticSpells
 
         private static bool CanGetTheSpell(NPCInfo npcInfo, KeyValuePair<ISpellGetter, SpellInfo> spellInfo)
         {
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 1");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check main effect");
             //if (npcGetter.PlayerSkills == null) return false;
             if (spellInfo.Value.MainEffect == null) return false;
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 2");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check if spell info have any keywords");
             if (spellInfo.Value.MainEffect.Keywords == null) return false;
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 3");
 
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check if npc actor values is more or equal of reuired by spell");
             foreach (var requiredSkillInfo in spellInfo.Value.RequiredSkills)
             {
-                if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 4");
+                if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check actor value");
                 if (requiredSkillInfo.Value > npcInfo.SkillLevels[requiredSkillInfo.Key]) return false;
-                if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 4.1");
+                if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} checked actor value");
                 //if (npcGetter.PlayerSkills.SkillValues.First(s => s.Key == requiredSkillInfo.Key).Value < requiredSkillInfo.Value) return false;
             }
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 5");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} add valid spell keywords for compare");
             var spellValidKeywords = new List<IKeywordGetter>();
             foreach (var keywordFormLinkGetter in spellInfo.Value.MainEffect!.Keywords)
             {
@@ -701,23 +699,24 @@ namespace SynAutomaticSpells
 
                 var edid = keyword.EditorID;
                 if (string.IsNullOrWhiteSpace(edid)) continue;
-                if (keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) spellValidKeywords.Add(keyword);
+                if (!keyword.EditorID.HasAnyFromList(Settings.Value.EffectKeywordInclude)) continue;
+                spellValidKeywords.Add(keyword);
             }
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 6");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check if any valid spell keywords added");
             if (spellValidKeywords.Count == 0) return false;
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 7");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check if npc hace the equip type ");
             if (!npcInfo.HandEffects.ContainsKey(spellInfo.Key.EquipmentType.FormKey)) return false;
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 8");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} set keywords by equip type");
             var npcSpellsEffectsValidKeywords = npcInfo.HandEffects[spellInfo.Key.EquipmentType.FormKey];
             if (npcSpellsEffectsValidKeywords == null) return false;
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 9");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} check if spell have any same keyword as npc spells had");
             foreach (var keywordGetter in spellValidKeywords) if (npcSpellsEffectsValidKeywords.Contains(keywordGetter)) return true;
 
-            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} 10");
+            if (IsDebugSpell) Console.WriteLine($"{nameof(CanGetTheSpell)} no keywords was equal, return false");
             if (IsDebugSpell) Console.WriteLine($"{nameof(spellValidKeywords)}:\n{string.Join("\n", spellValidKeywords.Select(k=>k.EditorID))}\n\n{nameof(npcSpellsEffectsValidKeywords)}:\n{string.Join("\n", npcSpellsEffectsValidKeywords.Select(k=>k.EditorID))}");
             return false;
         }
