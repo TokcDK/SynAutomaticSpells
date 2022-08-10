@@ -1,0 +1,9 @@
+{
+  "Nickname": "SynAutomaticSpells",
+  "Visibility": "Visible",
+  "OneLineDescription": "Synthesis implementation of ASIS AutomaticSpells patcher with additional features and fixes.",
+  "LongDescription": "Adds additional spells for npcs around Skyrim.\n\nUses npc and spell stats to set valid spells and because it is more correct will be to move the patcher after any other patchers that changing spell/npc stats.\nWhen file \\Data\\SkyProc Patchers\\ASIS\\AutomaticSpells.ini is exist, parameters from it will be read from it into settings before patching.\nDont forget to disable Automatic spells patcher in ASIS.\r\n\n>>Open Settings to set your preferred parameters.<<\n\nOriginal ASIS patcher LE: https://www.nexusmods.com/skyrim/mods/18436\nASIS Improved ini: https://www.nexusmods.com/skyrim/mods/53047",
+  "PreferredAutoVersioning": "Default",
+  "RequiredMods": [],
+  "TargetedReleases": []
+}
