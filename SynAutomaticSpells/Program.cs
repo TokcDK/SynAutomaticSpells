@@ -65,7 +65,8 @@ namespace SynAutomaticSpells
             Console.WriteLine("Get npc info..");
             var npcsInfoList = GetNPCInfoList();
 
-            Console.WriteLine("Add spells to npc if any valid..");
+            Console.WriteLine("Distribute spells to npcs..\n\n-----------");
+            int patchedNpcCount = 0;
             foreach (var npcInfo in npcsInfoList)
             {
                 // skip invalid
@@ -92,7 +93,10 @@ namespace SynAutomaticSpells
                 Console.WriteLine($"Add {addedCount} spells for '{npcInfo.Key.EditorID}'");
                 var npc = state.PatchMod.Npcs.GetOrAddAsOverride(npcInfo.Key);
                 foreach (var spellToAdd in spellsToAdd) npc.ActorEffect!.Add(spellToAdd);
+                patchedNpcCount++;
             }
+
+            Console.WriteLine($"\n\nPatched {patchedNpcCount} npcs.\n-----------");
         }
 
         private static void SetAsisAutoSpellsIniValuesToSettings()
