@@ -3,6 +3,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
+using SkyrimNPCHelpers;
 using StringCompareSettings;
 using System;
 using System.Collections.Generic;
@@ -359,13 +360,11 @@ namespace SynAutomaticSpells
 
         private static NPCInfo? GetNPCInfo(INpcGetter npcGetter)
         {
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} get npc with untemplated spells list");
-            INpcGetter? unTemplatedNpcSpells = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.SpellList);
-            if (unTemplatedNpcSpells == null) return null;
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} try get npc with untemplated spells list");
+            if (!npcGetter.TryUnTemplate(State!.LinkCache, NpcConfiguration.TemplateFlag.SpellList, out var unTemplatedNpcSpells)) return null;
 
-            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} get npc with untemplated stats");
-            INpcGetter? unTemplatedNpcStats = UnTemplate(npcGetter, NpcConfiguration.TemplateFlag.Stats);
-            if (unTemplatedNpcStats == null) return null;
+            if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} try get npc with untemplated stats");
+            if (!npcGetter.TryUnTemplate(State!.LinkCache, NpcConfiguration.TemplateFlag.Stats, out var unTemplatedNpcStats)) return null;
 
             var npcInfo = new NPCInfo();
             // FireDamageConcAimed
@@ -484,40 +483,6 @@ namespace SynAutomaticSpells
 
             if (IsDebugNPC) Console.WriteLine($"{nameof(GetNPCInfo)} 6");
             return npcInfo;
-        }
-
-        private static INpcGetter? UnTemplate(INpcGetter npcGetter, NpcConfiguration.TemplateFlag templateFlag)
-        {
-            INpcGetter? untemplatedNpc = npcGetter;
-            while (untemplatedNpc.Configuration.TemplateFlags.HasFlag(templateFlag))
-            {
-                if (untemplatedNpc.Template == null
-                    || untemplatedNpc.Template.IsNull
-                    || untemplatedNpc.Template.FormKey.IsNull
-                    || !untemplatedNpc!.Template.TryResolve(State!.LinkCache, out var templateNpcSpawnGetter)
-                    )
-                {
-                    untemplatedNpc = null;
-                    break;
-                }
-
-                var templateNpcGetterFormlink = new FormLink<INpcGetter>(templateNpcSpawnGetter.FormKey);
-                if (templateNpcGetterFormlink == null)
-                {
-                    untemplatedNpc = null;
-                    break;
-                }
-
-                if (!templateNpcGetterFormlink.TryResolve(State!.LinkCache, out var templateNpcGetter))
-                {
-                    untemplatedNpc = null;
-                    break;
-                }
-
-                untemplatedNpc = templateNpcGetter;
-            }
-
-            return untemplatedNpc;
         }
 
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
