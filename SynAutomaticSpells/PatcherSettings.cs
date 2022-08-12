@@ -8,6 +8,20 @@ namespace SynAutomaticSpells
     public class PatcherSettings
     {
         [SynthesisOrder]
+        [SynthesisTooltip("Native settings of the patcher containing more convenient way to add items to lists")]
+        public NativeSettings NativeSettings = new();
+
+        [SynthesisOrder]
+        [SynthesisTooltip("ASIS like options, can be read from ASIS AutomaticSpell.ini if exist or entered manually here")]
+        public ASISOptions ASIS = new();
+
+        [SynthesisOrder]
+        [SynthesisTooltip("Debug options")]
+        public DebugOptions Debug = new();
+    }
+    public class NativeSettings
+    {
+        [SynthesisOrder]
         [SynthesisDiskName("GetSpellsFromSpelltomes")]
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Determine if need to get spells from avalaible spelltomes instead of spells list.\nCan prevent more unvanted spells to be added.")]
@@ -22,14 +36,6 @@ namespace SynAutomaticSpells
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Determine included mods for spells")]
         public HashSet<ModKey> SpellModInclude = new();
-
-        [SynthesisOrder]
-        [SynthesisTooltip("ASIS like options, can be read from ASIS AutomaticSpell.ini if exist or entered manually here")]
-        public ASISOptions ASIS = new();
-
-        [SynthesisOrder]
-        [SynthesisTooltip("Debug options")]
-        public DebugOptions Debug = new();
     }
 
     public class ASISOptions
@@ -38,39 +44,45 @@ namespace SynAutomaticSpells
         [SynthesisDiskName("NPCInclusions")]
         //[SynthesisSettingName("NPC Include")]
         [SynthesisTooltip("Strings determine included npcs by editor id")]
-        public HashSet<StringCompareSetting> NPCInclusions = new();
+        public HashSet<StringCompareSettingGroup> NPCInclusions = new();
         [SynthesisOrder]
         [SynthesisDiskName("NPCExclusions")]
         //[SynthesisSettingName("NPC Exclude")]
         [SynthesisTooltip("Strings determine excluded npcs by editor id")]
-        public HashSet<StringCompareSetting> NPCExclusions = new();
+        public HashSet<StringCompareSettingGroup> NPCExclusions = new();
         [SynthesisOrder]
         [SynthesisDiskName("NPCKeywordExclusions")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
         [SynthesisTooltip("Strings determine excluded npcs by editor id")]
-        public HashSet<StringCompareSetting> NPCKeywordExclusions = new();
+        public HashSet<StringCompareSettingGroup> NPCKeywordExclusions = new();
         [SynthesisOrder]
         [SynthesisDiskName("NPCModExclusions")]
         //[SynthesisSettingName("Npc Keyword Exclude")]
         [SynthesisTooltip("Strings determine excluded mods for npcs")]
-        public HashSet<StringCompareSetting> NPCModExclusions = new();
+        public HashSet<StringCompareSettingGroup> NPCModExclusions = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpellExclusons")]
         //[SynthesisSettingName("Spell Exclude")]
         [SynthesisTooltip("Strings determine excluded spells by editor id")]
-        public HashSet<StringCompareSetting> SpellExclusons = new();
+        public HashSet<StringCompareSettingGroup> SpellExclusons = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpellModNInclusions")]
         //[SynthesisSettingName("SpellModExclude")]
         [SynthesisTooltip("Strings determine included mods for spells")]
-        public HashSet<StringCompareSetting> SpellModNInclusions = new();
+        public HashSet<StringCompareSettingGroup> SpellModNInclusions = new();
         [SynthesisOrder]
         [SynthesisDiskName("EffectKeywordInclusions")]
         //[SynthesisSettingName("Spell Exclude")]
         [SynthesisTooltip("Strings determine allowed magic effect keywords by editor id for spell types")]
-        public HashSet<StringCompareSetting> EffectKeywordInclusions = new()
+        public HashSet<StringCompareSettingGroup> EffectKeywordInclusions = new()
         {
-            new StringCompareSetting(){Name="MAGIC", IgnoreCase=true, Compare= CompareType.StartsWith},
+            new StringCompareSettingGroup()
+            { 
+                StringsList=new List<StringCompareSetting>()
+                { 
+                    new StringCompareSetting() { Name = "MAGIC", IgnoreCase = true, Compare = CompareType.StartsWith } 
+                } 
+            }
         };
     }
 
@@ -91,14 +103,14 @@ namespace SynAutomaticSpells
         [SynthesisOrder]
         [SynthesisDiskName("NpcEDIDListForDebug")]
         [SynthesisTooltip("List of NPC Editor ID wich for which will be displayed debug messages")]
-        public HashSet<StringCompareSetting> NpcEDIDListForDebug = new();
+        public HashSet<StringCompareSettingGroup> NpcEDIDListForDebug = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpellEDIDListForDebug")]
         [SynthesisTooltip("List of Spell Editor ID wich for which will be displayed debug messages")]
-        public HashSet<StringCompareSetting> SpellEDIDListForDebug = new();
+        public HashSet<StringCompareSettingGroup> SpellEDIDListForDebug = new();
         [SynthesisOrder]
         [SynthesisDiskName("SpelEffectlEDIDListForDebug")]
         [SynthesisTooltip("List of Spell effect Editor ID wich for which will be displayed debug messages")]
-        public HashSet<StringCompareSetting> SpelEffectlEDIDListForDebug = new();
+        public HashSet<StringCompareSettingGroup> SpelEffectlEDIDListForDebug = new();
     }
 }

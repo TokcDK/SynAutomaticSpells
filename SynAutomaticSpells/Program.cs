@@ -126,121 +126,48 @@ namespace SynAutomaticSpells
             Console.WriteLine($"\n\nPatched {patchedNpcCount} npcs.\n-----------");
         }
 
+        public class ASISSetData
+        {
+            public string SectionName = "";
+            public HashSet<StringCompareSettingGroup> List = new();
+            public CompareType StringCompareType;
+        }
         private static void SetAsisAutoSpellsIniValuesToSettings()
         {
             Console.WriteLine("Set Asis autospells ini values into settings..");
 
-            foreach (var v in AutomaticSpellsIniParams!["NPCInclusions"])
+            List<ASISSetData> AutomaticSpellsIniParamsData = new()
             {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.StartsWith
-                };
+                new ASISSetData(){ SectionName = "NPCInclusions", List = Settings.Value.ASIS.NPCInclusions, StringCompareType = CompareType.StartsWith },
+                new ASISSetData(){ SectionName = "NPCExclusions", List = Settings.Value.ASIS.NPCExclusions, StringCompareType = CompareType.Contains },
+                new ASISSetData(){ SectionName = "NPCKeywordExclusions", List = Settings.Value.ASIS.NPCKeywordExclusions, StringCompareType = CompareType.StartsWith },
+                new ASISSetData(){ SectionName = "NPCModExclusions", List = Settings.Value.ASIS.NPCModExclusions, StringCompareType = CompareType.Equals },
+                new ASISSetData(){ SectionName = "spellModInclusions", List = Settings.Value.ASIS.SpellModNInclusions, StringCompareType = CompareType.Equals },
+                new ASISSetData(){ SectionName = "SPELLEXCLUSIONSCONTAINS", List = Settings.Value.ASIS.SpellExclusons, StringCompareType = CompareType.Contains },
+                new ASISSetData(){ SectionName = "SPELLEXCLUSIONSSTARTSWITH", List = Settings.Value.ASIS.SpellExclusons, StringCompareType = CompareType.StartsWith },
+                new ASISSetData(){ SectionName = "EffectKeywordPrefixes", List = Settings.Value.ASIS.EffectKeywordInclusions, StringCompareType = CompareType.StartsWith },
+            };
 
-                var list = Settings.Value.ASIS.NPCInclusions;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["NPCExclusions"])
+            foreach (var paramData in AutomaticSpellsIniParamsData)
             {
-                var stringInfo = new StringCompareSetting
+                var list = paramData.List;
+                var groupToAdd = new StringCompareSettingGroup() { Comment = nameof(list) };
+                HashSet<string> addStrings = new();
+                foreach (var v in AutomaticSpellsIniParams![paramData.SectionName])
                 {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.Contains
-                };
+                    if (addStrings.Contains(v)) continue;
 
-                var list = Settings.Value.ASIS.NPCExclusions;
-                if (list.Contains(stringInfo)) continue;
+                    addStrings.Add(v);
+                    var stringInfo = new StringCompareSetting
+                    {
+                        Name = v,
+                        IgnoreCase = true,
+                        Compare = paramData.StringCompareType
+                    };
 
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSCONTAINS"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.Contains
-                };
-
-                var list = Settings.Value.ASIS.SpellExclusons;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["SPELLEXCLUSIONSSTARTSWITH"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.StartsWith
-                };
-
-                var list = Settings.Value.ASIS.SpellExclusons;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["EffectKeywordPrefixes"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.StartsWith
-                };
-
-                var list = Settings.Value.ASIS.EffectKeywordInclusions;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["NPCKeywordExclusions"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.StartsWith
-                };
-
-                var list = Settings.Value.ASIS.NPCKeywordExclusions;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["NPCModExclusions"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.Equals
-                };
-
-                var list = Settings.Value.ASIS.NPCModExclusions;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
-            }
-            foreach (var v in AutomaticSpellsIniParams["spellModInclusions"])
-            {
-                var stringInfo = new StringCompareSetting
-                {
-                    Name = v,
-                    IgnoreCase = true,
-                    Compare = CompareType.Equals
-                };
-
-                var list = Settings.Value.ASIS.SpellModNInclusions;
-                if (list.Contains(stringInfo)) continue;
-
-                list.Add(stringInfo);
+                    groupToAdd.StringsList.Add(stringInfo);
+                }
+                list.Add(groupToAdd);
             }
 
             AutomaticSpellsIniParams = null;
@@ -287,8 +214,8 @@ namespace SynAutomaticSpells
         
         private static Dictionary<INpcGetter, NPCInfo> GetNPCInfoList()
         {
-            bool useNpcModExclude = Settings.Value.NpcModExclude.Count > 0;
-            bool useNpcModExcludeByName = Settings.Value.NpcModExclude.Count > 0;
+            bool useNpcModExclude = Settings.Value.NativeSettings.NpcModExclude.Count > 0;
+            bool useNpcModExcludeByName = Settings.Value.NativeSettings.NpcModExclude.Count > 0;
             bool useNpcExclude = Settings.Value.ASIS.NPCExclusions.Count > 0;
             bool useNpcInclude = Settings.Value.ASIS.NPCInclusions.Count > 0;
             bool useNpcKeywordExclude = Settings.Value.ASIS.NPCKeywordExclusions.Count > 0;
@@ -316,7 +243,7 @@ namespace SynAutomaticSpells
                 if (npcGetter == null) continue;
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<INpc, INpcGetter>(npcGetter.FormKey).Last().ModKey;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in excluded list");
-                if (useNpcModExclude && Settings.Value.NpcModExclude.Contains(sourceModKey)) continue;
+                if (useNpcModExclude && Settings.Value.NativeSettings.NpcModExclude.Contains(sourceModKey)) continue;
                 if (IsDebugNPC) Console.WriteLine($"{npcDebugID} check if npc source mod is in included list");
                 if (useNpcModExcludeByName && sourceModKey.FileName.String.HasAnyFromList(Settings.Value.ASIS.NPCModExclusions)) continue;
 
@@ -487,7 +414,7 @@ namespace SynAutomaticSpells
 
         private static Dictionary<ISpellGetter, SpellInfo> GetSpellInfoList()
         {
-            bool useModInclude = Settings.Value.SpellModInclude.Count > 0 || Settings.Value.ASIS.SpellModNInclusions.Count > 0;
+            bool useModInclude = Settings.Value.NativeSettings.SpellModInclude.Count > 0 || Settings.Value.ASIS.SpellModNInclusions.Count > 0;
             bool useSpellExclude = Settings.Value.ASIS.SpellExclusons.Count > 0;
             Dictionary<ISpellGetter, SpellInfo> spellInfoList = new();
             foreach (var spellGetterContext in EnumerateSpellGetterContexts())
@@ -512,7 +439,7 @@ namespace SynAutomaticSpells
 
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spel is from included mods");
                 var sourceModKey = State!.LinkCache.ResolveAllContexts<ISpell, ISpellGetter>(spellGetter.FormKey).Last().ModKey;
-                if (useModInclude && !Settings.Value.SpellModInclude.Contains(sourceModKey)
+                if (useModInclude && !Settings.Value.NativeSettings.SpellModInclude.Contains(sourceModKey)
                     && !sourceModKey.FileName.String.HasAnyFromList(Settings.Value.ASIS.SpellModNInclusions)) continue;
 
                 if (IsDebugSpell) Console.WriteLine($"{spellDebugID} check if spell cast type is valid");
@@ -544,7 +471,7 @@ namespace SynAutomaticSpells
 
         private static IEnumerable<Mutagen.Bethesda.Plugins.Cache.IModContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>?> EnumerateSpellGetterContexts()
         {
-            if (Settings.Value.GetSpellsFromSpelltomes)
+            if (Settings.Value.NativeSettings.GetSpellsFromSpelltomes)
             {
                 foreach (var bookContext in State!.LoadOrder.PriorityOrder.Book().WinningContextOverrides())
                 {
