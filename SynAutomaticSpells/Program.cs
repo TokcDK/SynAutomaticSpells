@@ -465,8 +465,7 @@ namespace SynAutomaticSpells
         private static bool IsValidSpellType(ISpellGetter spellGetter)
         {
             return spellGetter.Type == SpellType.Spell
-                    && spellGetter.CastType != CastType.ConstantEffect
-                    && spellGetter.CastType != CastType.Scroll;
+                    && spellGetter.CastType != CastType.ConstantEffect;
         }
 
         private static IEnumerable<Mutagen.Bethesda.Plugins.Cache.IModContext<ISkyrimMod, ISkyrimModGetter, ISpell, ISpellGetter>?> EnumerateSpellGetterContexts()
